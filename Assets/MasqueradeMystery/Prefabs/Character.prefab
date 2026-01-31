@@ -442,6 +442,8 @@ MonoBehaviour:
   - {fileID: 8858700615411165292, guid: db5e11e051452064ab121f147802c850, type: 3}
   - {fileID: 7433239076329990942, guid: db5e11e051452064ab121f147802c850, type: 3}
   - {fileID: 4870236174426677522, guid: db5e11e051452064ab121f147802c850, type: 3}
+  outlineMaterial: {fileID: 2100000, guid: 659eaecb48c6443499563f8c02709f69, type: 2}
+  outlineColor: {r: 1, g: 0, b: 0, a: 1}
   normalColor: {r: 1, g: 1, b: 1, a: 1}
   highlightColor: {r: 1.2, g: 1.2, b: 1.2, a: 1}
 --- !u!114 &5477238356738973251
@@ -472,6 +474,9 @@ MonoBehaviour:
   walkChance: 0.1
   walkRadius: 2
   walkSpeed: 2
+  minDistanceFromOthers: 1.5
+  maxWalkAttempts: 10
+  swayAmount: 0.15
 --- !u!1 &6344295248856093781
 GameObject:
   m_ObjectHideFlags: 0

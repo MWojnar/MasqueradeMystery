@@ -70,13 +70,49 @@ namespace MasqueradeMystery
         [SerializeField] private Sprite[] sharkDance;
         [SerializeField] private Sprite[] fishDance;
 
+        [Header("Outline Settings")]
+        [SerializeField] private Material outlineMaterial;
+        [SerializeField] private Color outlineColor = Color.red;
+
         [Header("Highlight Settings")]
         [SerializeField] private Color normalColor = Color.white;
         [SerializeField] private Color highlightColor = new Color(1.2f, 1.2f, 1.2f, 1f);
 
+        // Material instance for outline control (body only)
+        private Material bodyMaterialInstance;
+
+        private static readonly int OutlineEnabledProperty = Shader.PropertyToID("_OutlineEnabled");
+        private static readonly int OutlineColorProperty = Shader.PropertyToID("_OutlineColor");
+
         private CharacterData currentData;
         private CharacterAnimationState currentState = CharacterAnimationState.Idle;
         private int currentFrame;
+
+        private void Awake()
+        {
+            InitializeMaterials();
+        }
+
+        private void InitializeMaterials()
+        {
+            if (outlineMaterial == null) return;
+
+            // Only apply outline material to body renderer
+            // Mask and accessory sit on top of body, so body outline represents the silhouette
+            // Applying to all would cause internal edge outlines where sprites overlap
+            if (bodyRenderer != null)
+            {
+                bodyMaterialInstance = new Material(outlineMaterial);
+                bodyMaterialInstance.SetColor(OutlineColorProperty, outlineColor);
+                bodyRenderer.material = bodyMaterialInstance;
+            }
+        }
+
+        private void OnDestroy()
+        {
+            // Clean up material instance
+            if (bodyMaterialInstance != null) Destroy(bodyMaterialInstance);
+        }
 
         public void UpdateVisuals(CharacterData data)
         {
@@ -239,6 +275,12 @@ namespace MasqueradeMystery
                 maskRenderer.color = color;
             if (accessoryRenderer != null && accessoryRenderer.gameObject.activeSelf)
                 accessoryRenderer.color = color;
+        }
+
+        public void SetOutline(bool enabled)
+        {
+            if (bodyMaterialInstance != null)
+                bodyMaterialInstance.SetFloat(OutlineEnabledProperty, enabled ? 1f : 0f);
         }
 
         public void SetFlipped(bool flipped)

@@ -30,7 +30,7 @@ namespace MasqueradeMystery
 
             if (visuals != null)
             {
-                visuals.SetHighlight(true);
+                visuals.SetOutline(true);
             }
         }
 
@@ -43,7 +43,7 @@ namespace MasqueradeMystery
 
             if (visuals != null)
             {
-                visuals.SetHighlight(false);
+                visuals.SetOutline(false);
             }
         }
 
@@ -59,6 +59,12 @@ namespace MasqueradeMystery
             if (isHovered && character != null)
             {
                 GameEvents.OnCharacterHoverEnd?.Invoke(character);
+
+                if (visuals != null)
+                {
+                    visuals.SetOutline(false);
+                }
+
                 isHovered = false;
             }
         }
