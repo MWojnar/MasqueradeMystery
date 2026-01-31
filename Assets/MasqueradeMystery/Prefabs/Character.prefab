@@ -117,8 +117,8 @@ Transform:
   m_GameObject: {fileID: 4023989033555552457}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.2, z: 0}
-  m_LocalScale: {x: 0.3, y: 0.3, z: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 6273224327117685778}
@@ -298,18 +298,20 @@ MonoBehaviour:
   maskRenderer: {fileID: 8083335304772628435}
   accessoryRenderer: {fileID: 8082683038919436426}
   partnerLineRenderer: {fileID: 7916679300437894835}
-  suitColor: {r: 0.2, g: 0.2, b: 0.4, a: 1}
-  dressColor: {r: 0.6, g: 0.2, b: 0.4, a: 1}
-  foxColor: {r: 1, g: 0.5, b: 0.2, a: 1}
-  rabbitColor: {r: 1, g: 0.7, b: 0.8, a: 1}
-  sharkColor: {r: 0.5, g: 0.5, b: 0.6, a: 1}
-  fishColor: {r: 0.3, g: 0.6, b: 1, a: 1}
-  plainEyesColor: {r: 0.95, g: 0.95, b: 0.95, a: 1}
-  plainFullFaceColor: {r: 0.95, g: 0.9, b: 0.8, a: 1}
-  crownedColor: {r: 1, g: 0.85, b: 0.2, a: 1}
-  jesterColor: {r: 0.6, g: 0.2, b: 0.8, a: 1}
-  bowtieColor: {r: 0.8, g: 0.1, b: 0.1, a: 1}
-  hairbowColor: {r: 1, g: 0.4, b: 0.6, a: 1}
+  suitSprite: {fileID: -5523261043536253178, guid: c71de07bc44637e458ce3bbe278fa520, type: 3}
+  dressSprite: {fileID: 5709872552911356366, guid: c71de07bc44637e458ce3bbe278fa520, type: 3}
+  bowtieSprite: {fileID: -3797140236300573179, guid: c71de07bc44637e458ce3bbe278fa520, type: 3}
+  hairbowSprite: {fileID: 5922596897428330712, guid: c71de07bc44637e458ce3bbe278fa520, type: 3}
+  plainEyesSprite: {fileID: -1103086034171714959, guid: c71de07bc44637e458ce3bbe278fa520, type: 3}
+  plainFullFaceSprite: {fileID: -1496167904473400739, guid: c71de07bc44637e458ce3bbe278fa520, type: 3}
+  crownedSprite: {fileID: -1347944467025567232, guid: c71de07bc44637e458ce3bbe278fa520, type: 3}
+  jesterSprite: {fileID: 3799546176343355614, guid: c71de07bc44637e458ce3bbe278fa520, type: 3}
+  foxSprite: {fileID: 4405474514931067254, guid: c71de07bc44637e458ce3bbe278fa520, type: 3}
+  rabbitSprite: {fileID: 9000175636703215256, guid: c71de07bc44637e458ce3bbe278fa520, type: 3}
+  sharkSprite: {fileID: 3346439723396537694, guid: c71de07bc44637e458ce3bbe278fa520, type: 3}
+  fishSprite: {fileID: 3346439723396537694, guid: c71de07bc44637e458ce3bbe278fa520, type: 3}
+  normalColor: {r: 1, g: 1, b: 1, a: 1}
+  highlightColor: {r: 1.2, g: 1.2, b: 1.2, a: 1}
 --- !u!114 &5477238356738973251
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -457,8 +459,8 @@ Transform:
   m_GameObject: {fileID: 7613687009109816164}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.6, z: 0}
-  m_LocalScale: {x: 0.6, y: 0.6, z: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 6273224327117685778}

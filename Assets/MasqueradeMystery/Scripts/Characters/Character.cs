@@ -19,6 +19,12 @@ namespace MasqueradeMystery
             if (visuals != null)
             {
                 visuals.UpdateVisuals(data);
+
+                // Random flip for non-dancing characters
+                if (!data.IsDancing)
+                {
+                    visuals.SetFlipped(Random.value > 0.5f);
+                }
             }
 
             if (animator != null)
@@ -30,6 +36,13 @@ namespace MasqueradeMystery
         public void SetDancePartner(Character partner)
         {
             DancePartner = partner;
+
+            // Flip the character on the right side to face their partner
+            if (partner != null && visuals != null)
+            {
+                bool isOnRight = transform.position.x > partner.transform.position.x;
+                visuals.SetFlipped(isOnRight);
+            }
         }
 
         // Debug display in inspector

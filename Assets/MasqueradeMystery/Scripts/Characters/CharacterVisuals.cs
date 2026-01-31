@@ -10,25 +10,29 @@ namespace MasqueradeMystery
         [SerializeField] private SpriteRenderer accessoryRenderer;
         [SerializeField] private SpriteRenderer partnerLineRenderer;
 
-        [Header("Placeholder Colors - Clothing")]
-        [SerializeField] private Color suitColor = new Color(0.2f, 0.2f, 0.4f);
-        [SerializeField] private Color dressColor = new Color(0.6f, 0.2f, 0.4f);
+        [Header("Body Sprites")]
+        [SerializeField] private Sprite suitSprite;      // Frame 0
+        [SerializeField] private Sprite dressSprite;     // Frame 2
 
-        [Header("Placeholder Colors - Animal Masks")]
-        [SerializeField] private Color foxColor = new Color(1f, 0.5f, 0.2f);
-        [SerializeField] private Color rabbitColor = new Color(1f, 0.7f, 0.8f);
-        [SerializeField] private Color sharkColor = new Color(0.5f, 0.5f, 0.6f);
-        [SerializeField] private Color fishColor = new Color(0.3f, 0.6f, 1f);
+        [Header("Accessory Sprites")]
+        [SerializeField] private Sprite bowtieSprite;    // Frame 1
+        [SerializeField] private Sprite hairbowSprite;   // Frame 3
 
-        [Header("Placeholder Colors - Non-Animal Masks")]
-        [SerializeField] private Color plainEyesColor = new Color(0.95f, 0.95f, 0.95f);
-        [SerializeField] private Color plainFullFaceColor = new Color(0.95f, 0.9f, 0.8f);
-        [SerializeField] private Color crownedColor = new Color(1f, 0.85f, 0.2f);
-        [SerializeField] private Color jesterColor = new Color(0.6f, 0.2f, 0.8f);
+        [Header("Mask Sprites - Non-Animal")]
+        [SerializeField] private Sprite plainEyesSprite;     // Frame 4
+        [SerializeField] private Sprite plainFullFaceSprite; // Frame 5
+        [SerializeField] private Sprite crownedSprite;       // Frame 6
+        [SerializeField] private Sprite jesterSprite;        // Frame 7
 
-        [Header("Placeholder Colors - Accessories")]
-        [SerializeField] private Color bowtieColor = new Color(0.8f, 0.1f, 0.1f);
-        [SerializeField] private Color hairbowColor = new Color(1f, 0.4f, 0.6f);
+        [Header("Mask Sprites - Animal")]
+        [SerializeField] private Sprite foxSprite;       // Frame 8
+        [SerializeField] private Sprite rabbitSprite;    // Frame 9
+        [SerializeField] private Sprite sharkSprite;     // Frame 10
+        [SerializeField] private Sprite fishSprite;      // Frame 11
+
+        [Header("Highlight Settings")]
+        [SerializeField] private Color normalColor = Color.white;
+        [SerializeField] private Color highlightColor = new Color(1.2f, 1.2f, 1.2f, 1f);
 
         public void UpdateVisuals(CharacterData data)
         {
@@ -42,53 +46,59 @@ namespace MasqueradeMystery
         {
             if (bodyRenderer == null) return;
 
-            bodyRenderer.color = clothing == ClothingType.Suit ? suitColor : dressColor;
+            bodyRenderer.sprite = clothing == ClothingType.Suit ? suitSprite : dressSprite;
+            bodyRenderer.color = normalColor;
         }
 
         private void UpdateMask(MaskIdentifier mask)
         {
             if (maskRenderer == null) return;
 
-            Color maskColor;
+            Sprite maskSprite = null;
+
             if (mask.IsAnimalMask)
             {
-                maskColor = mask.AnimalMask switch
+                maskSprite = mask.AnimalMask switch
                 {
-                    AnimalMaskType.Fox => foxColor,
-                    AnimalMaskType.Rabbit => rabbitColor,
-                    AnimalMaskType.Shark => sharkColor,
-                    AnimalMaskType.Fish => fishColor,
-                    _ => Color.white
+                    AnimalMaskType.Fox => foxSprite,
+                    AnimalMaskType.Rabbit => rabbitSprite,
+                    AnimalMaskType.Shark => sharkSprite,
+                    AnimalMaskType.Fish => fishSprite,
+                    _ => null
                 };
             }
             else
             {
-                maskColor = mask.NonAnimalMask switch
+                maskSprite = mask.NonAnimalMask switch
                 {
-                    NonAnimalMaskType.PlainEyes => plainEyesColor,
-                    NonAnimalMaskType.PlainFullFace => plainFullFaceColor,
-                    NonAnimalMaskType.Crowned => crownedColor,
-                    NonAnimalMaskType.Jester => jesterColor,
-                    _ => Color.white
+                    NonAnimalMaskType.PlainEyes => plainEyesSprite,
+                    NonAnimalMaskType.PlainFullFace => plainFullFaceSprite,
+                    NonAnimalMaskType.Crowned => crownedSprite,
+                    NonAnimalMaskType.Jester => jesterSprite,
+                    _ => null
                 };
             }
 
-            maskRenderer.color = maskColor;
+            maskRenderer.sprite = maskSprite;
+            maskRenderer.color = normalColor;
+            maskRenderer.gameObject.SetActive(maskSprite != null);
         }
 
         private void UpdateAccessory(CharacterData data)
         {
             if (accessoryRenderer == null) return;
 
-            if (data.HasBowtie)
+            if (data.HasBowtie && bowtieSprite != null)
             {
+                accessoryRenderer.sprite = bowtieSprite;
+                accessoryRenderer.color = normalColor;
                 accessoryRenderer.gameObject.SetActive(true);
-                accessoryRenderer.color = bowtieColor;
             }
-            else if (data.HasHairbow)
+            else if (data.HasHairbow && hairbowSprite != null)
             {
+                accessoryRenderer.sprite = hairbowSprite;
+                accessoryRenderer.color = normalColor;
                 accessoryRenderer.gameObject.SetActive(true);
-                accessoryRenderer.color = hairbowColor;
             }
             else
             {
@@ -104,15 +114,26 @@ namespace MasqueradeMystery
             }
         }
 
-        // Call this to highlight character (e.g., on hover)
         public void SetHighlight(bool highlighted)
         {
+            Color color = highlighted ? highlightColor : normalColor;
+
             if (bodyRenderer != null)
-            {
-                // Simple brightness increase for highlight
-                float multiplier = highlighted ? 1.3f : 1f;
-                // Could implement more sophisticated highlighting here
-            }
+                bodyRenderer.color = color;
+            if (maskRenderer != null)
+                maskRenderer.color = color;
+            if (accessoryRenderer != null && accessoryRenderer.gameObject.activeSelf)
+                accessoryRenderer.color = color;
+        }
+
+        public void SetFlipped(bool flipped)
+        {
+            if (bodyRenderer != null)
+                bodyRenderer.flipX = flipped;
+            if (maskRenderer != null)
+                maskRenderer.flipX = flipped;
+            if (accessoryRenderer != null)
+                accessoryRenderer.flipX = flipped;
         }
     }
 }
