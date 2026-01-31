@@ -4,7 +4,7 @@ namespace MasqueradeMystery
 {
     public class CharacterAnimator : MonoBehaviour
     {
-        private const int FrameCount = 4;
+        private const int FrameCount = 5;
         private const float DefaultFrameTime = 0.3f; // 300ms
 
         [Header("Animation Settings")]
@@ -17,8 +17,17 @@ namespace MasqueradeMystery
         [SerializeField] private float walkRadius = 2f;
         [Tooltip("Movement speed while walking")]
         [SerializeField] private float walkSpeed = 2f;
+        [Tooltip("Minimum distance to maintain from other characters")]
+        [SerializeField] private float minDistanceFromOthers = 1.5f;
+        [Tooltip("Max attempts to find a valid walk target before cancelling")]
+        [SerializeField] private int maxWalkAttempts = 10;
+
+        [Header("Dance Sway")]
+        [Tooltip("How far left/right dancers sway during animation")]
+        [SerializeField] private float swayAmount = 0.15f;
 
         private CharacterVisuals visuals;
+        private Collider2D myCollider;
         private CharacterAnimationState state = CharacterAnimationState.Idle;
         private int currentFrame;
         private float frameTimer;
@@ -32,9 +41,15 @@ namespace MasqueradeMystery
         private bool isWalking;
         private float walkDecisionTimer;
 
+        // Dance sway state
+        private Vector3 danceBasePosition;
+        private float currentSwayOffset;
+        private float targetSwayOffset;
+
         private void Awake()
         {
             visuals = GetComponent<CharacterVisuals>();
+            myCollider = GetComponent<Collider2D>();
         }
 
         private void Start()
@@ -50,9 +65,16 @@ namespace MasqueradeMystery
             if (dancing)
             {
                 state = CharacterAnimationState.Dancing;
-                // Left partner starts at frame 0, right partner starts at frame 3
-                currentFrame = rightPartner ? FrameCount - 1 : 0;
-                pingPongReverse = rightPartner; // Right starts going backward (3→2→1→0)
+                currentFrame = FrameCount - 1;
+                pingPongReverse = true;
+
+                // Store base position for sway
+                danceBasePosition = transform.position;
+
+                // Initialize sway position based on starting frame
+                float frameProgress = (float)currentFrame / (FrameCount - 1);
+                targetSwayOffset = Mathf.Lerp(-swayAmount, swayAmount, frameProgress);
+                currentSwayOffset = targetSwayOffset;
             }
             else
             {
@@ -78,6 +100,7 @@ namespace MasqueradeMystery
                     break;
                 case CharacterAnimationState.Dancing:
                     UpdateFrameAnimation(loop: false); // Ping-pong, not simple loop
+                    UpdateDanceSway();
                     break;
             }
         }
@@ -103,9 +126,16 @@ namespace MasqueradeMystery
 
         private void StartWalking()
         {
-            // Pick a random point within walkRadius of original position
-            Vector2 randomOffset = Random.insideUnitCircle * walkRadius;
-            walkTarget = originalPosition + new Vector3(randomOffset.x, randomOffset.y, 0);
+            // Try to find a valid walk target
+            Vector3? validTarget = FindValidWalkTarget();
+
+            if (!validTarget.HasValue)
+            {
+                // Couldn't find a valid spot, stay idle
+                return;
+            }
+
+            walkTarget = validTarget.Value;
 
             isWalking = true;
             state = CharacterAnimationState.Walking;
@@ -117,6 +147,56 @@ namespace MasqueradeMystery
             visuals?.SetFlipped(!walkingRight); // Flip when walking left
 
             UpdateVisuals();
+        }
+
+        private Vector3? FindValidWalkTarget()
+        {
+            for (int attempt = 0; attempt < maxWalkAttempts; attempt++)
+            {
+                // Pick a random point within walkRadius of original position
+                Vector2 randomOffset = Random.insideUnitCircle * walkRadius;
+                Vector3 targetPosition = originalPosition + new Vector3(randomOffset.x, randomOffset.y, 0);
+
+                // Clamp to scene bounds if available
+                if (SceneBounds.Instance != null)
+                {
+                    var bounds = SceneBounds.Instance.Bounds;
+                    targetPosition.x = Mathf.Clamp(targetPosition.x, bounds.xMin, bounds.xMax);
+                    targetPosition.y = Mathf.Clamp(targetPosition.y, bounds.yMin, bounds.yMax);
+                }
+
+                // Check if this position is clear of other characters
+                if (IsPositionClear(targetPosition))
+                {
+                    return targetPosition;
+                }
+            }
+
+            // Couldn't find a valid position after max attempts
+            return null;
+        }
+
+        private bool IsPositionClear(Vector3 position)
+        {
+            // Find all colliders within minimum distance
+            Collider2D[] nearby = Physics2D.OverlapCircleAll(position, minDistanceFromOthers);
+
+            foreach (var collider in nearby)
+            {
+                // Skip self
+                if (collider == myCollider)
+                    continue;
+
+                // Check if this is another character (has CharacterAnimator)
+                var otherAnimator = collider.GetComponent<CharacterAnimator>();
+                if (otherAnimator != null)
+                {
+                    // Found another character too close
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         private void UpdateWalking()
@@ -151,6 +231,23 @@ namespace MasqueradeMystery
             visuals?.SetFlipped(Random.value > 0.5f);
 
             UpdateVisuals();
+        }
+
+        private void UpdateDanceSway()
+        {
+            // Calculate target sway based on current frame
+            // Frame 0 = left side (-swayAmount), Frame max = right side (+swayAmount)
+            float frameProgress = (float)currentFrame / (FrameCount - 1);
+            targetSwayOffset = Mathf.Lerp(-swayAmount, swayAmount, frameProgress);
+
+            // Smoothly interpolate toward target for gentle movement
+            float swaySpeed = swayAmount * 2f / frameTime; // Move full range over one frame time
+            currentSwayOffset = Mathf.MoveTowards(currentSwayOffset, targetSwayOffset, swaySpeed * Time.deltaTime);
+
+            // Apply sway offset to position
+            Vector3 swayedPosition = danceBasePosition;
+            swayedPosition.x += currentSwayOffset;
+            transform.position = swayedPosition;
         }
 
         private void UpdateFrameAnimation(bool loop)

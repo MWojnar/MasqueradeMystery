@@ -10,11 +10,24 @@ namespace MasqueradeMystery
         [SerializeField] private float edgePanSpeedMultiplier = 0.6f;
 
         [Header("Bounds")]
+        [Tooltip("If true, uses SceneBounds singleton. Otherwise uses manual bounds below.")]
+        [SerializeField] private bool useSceneBounds = true;
         [SerializeField] private Vector2 minBounds = new Vector2(-10f, -5f);
         [SerializeField] private Vector2 maxBounds = new Vector2(10f, 5f);
 
         [Header("Edge Pan Settings")]
         [SerializeField] private bool enableEdgePan = true;
+
+        private Camera cam;
+
+        private void Awake()
+        {
+            cam = GetComponent<Camera>();
+            if (cam == null)
+            {
+                cam = Camera.main;
+            }
+        }
 
         private void Update()
         {
@@ -40,11 +53,60 @@ namespace MasqueradeMystery
             Vector3 move = new Vector3(input.x, input.y, 0) * moveSpeed * Time.deltaTime;
             Vector3 newPos = transform.position + move;
 
-            // Clamp to bounds
-            newPos.x = Mathf.Clamp(newPos.x, minBounds.x, maxBounds.x);
-            newPos.y = Mathf.Clamp(newPos.y, minBounds.y, maxBounds.y);
+            // Clamp to bounds (accounting for camera viewport)
+            newPos = ClampToBounds(newPos);
 
             transform.position = newPos;
+        }
+
+        private Vector3 ClampToBounds(Vector3 position)
+        {
+            Vector2 min, max;
+
+            if (useSceneBounds && SceneBounds.Instance != null)
+            {
+                min = SceneBounds.Instance.Min;
+                max = SceneBounds.Instance.Max;
+            }
+            else
+            {
+                min = minBounds;
+                max = maxBounds;
+            }
+
+            // Calculate camera half-extents
+            float halfHeight = cam.orthographicSize;
+            float halfWidth = halfHeight * cam.aspect;
+
+            // Adjust bounds to account for camera size
+            // Camera center must stay far enough from edges that viewport doesn't exceed bounds
+            float clampedMinX = min.x + halfWidth;
+            float clampedMaxX = max.x - halfWidth;
+            float clampedMinY = min.y + halfHeight;
+            float clampedMaxY = max.y - halfHeight;
+
+            // Handle case where bounds are smaller than camera viewport
+            if (clampedMinX > clampedMaxX)
+            {
+                // Center horizontally if bounds are too narrow
+                position.x = (min.x + max.x) / 2f;
+            }
+            else
+            {
+                position.x = Mathf.Clamp(position.x, clampedMinX, clampedMaxX);
+            }
+
+            if (clampedMinY > clampedMaxY)
+            {
+                // Center vertically if bounds are too short
+                position.y = (min.y + max.y) / 2f;
+            }
+            else
+            {
+                position.y = Mathf.Clamp(position.y, clampedMinY, clampedMaxY);
+            }
+
+            return position;
         }
 
         private Vector2 GetEdgePanInput()
@@ -93,14 +155,27 @@ namespace MasqueradeMystery
         private void OnDrawGizmosSelected()
         {
             Gizmos.color = Color.yellow;
+
+            Vector2 min, max;
+            if (useSceneBounds && SceneBounds.Instance != null)
+            {
+                min = SceneBounds.Instance.Min;
+                max = SceneBounds.Instance.Max;
+            }
+            else
+            {
+                min = minBounds;
+                max = maxBounds;
+            }
+
             Vector3 center = new Vector3(
-                (minBounds.x + maxBounds.x) / 2f,
-                (minBounds.y + maxBounds.y) / 2f,
+                (min.x + max.x) / 2f,
+                (min.y + max.y) / 2f,
                 0
             );
             Vector3 size = new Vector3(
-                maxBounds.x - minBounds.x,
-                maxBounds.y - minBounds.y,
+                max.x - min.x,
+                max.y - min.y,
                 0.1f
             );
             Gizmos.DrawWireCube(center, size);
