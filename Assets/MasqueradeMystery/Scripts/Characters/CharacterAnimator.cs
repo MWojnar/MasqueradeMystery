@@ -26,11 +26,22 @@ namespace MasqueradeMystery
         [Tooltip("How far left/right dancers sway during animation")]
         [SerializeField] private float swayAmount = 0.15f;
 
+        [Header("Dance Movement")]
+        [Tooltip("Chance per second for a dancing character to move to a new spot")]
+        [SerializeField] private float danceMoveChance = 0.05f;
+        [Tooltip("Movement speed while dancing (slower than walking)")]
+        [SerializeField] private float danceMoveSpeed = 0.5f;
+        [Tooltip("Maximum distance a dancer will move from their original position")]
+        [SerializeField] private float danceMoveRadius = 3f;
+
         private CharacterVisuals visuals;
+        private Character character;
         private Collider2D myCollider;
         private CharacterAnimationState state = CharacterAnimationState.Idle;
+        public int CurrentFrame => currentFrame;
         private int currentFrame;
         private float frameTimer;
+        public bool PingPongReverse => pingPongReverse;
         private bool pingPongReverse; // Direction for ping-pong animation
         private bool isRightPartner;  // Determines starting frame for dance
         private bool hasPartner;
@@ -42,13 +53,22 @@ namespace MasqueradeMystery
         private float walkDecisionTimer;
 
         // Dance sway state
+        public Vector3 DanceBasePosition => danceBasePosition;
         private Vector3 danceBasePosition;
         private float currentSwayOffset;
         private float targetSwayOffset;
 
+        // Dance movement state
+        private Vector3 danceOriginalPosition;
+        private Vector3 danceMoveTarget;
+        private bool isDanceMoving;
+        private float danceMoveDecisionTimer;
+        private Vector3 partnerOffset; // Offset from partner (for follower to maintain)
+
         private void Awake()
         {
             visuals = GetComponent<CharacterVisuals>();
+            character = GetComponent<Character>();
             myCollider = GetComponent<Collider2D>();
         }
 
@@ -65,11 +85,42 @@ namespace MasqueradeMystery
             if (dancing)
             {
                 state = CharacterAnimationState.Dancing;
-                currentFrame = FrameCount - 1;
-                pingPongReverse = true;
 
-                // Store base position for sway
+                // Check if we should sync with partner (follower syncs to leader)
+                bool syncedToPartner = false;
+                if (isRightPartner && character != null && character.DancePartner != null)
+                {
+                    var leaderAnimator = character.DancePartner.GetComponent<CharacterAnimator>();
+                    if (leaderAnimator != null)
+                    {
+                        // Copy leader's animation phase to stay in sync
+                        currentFrame = leaderAnimator.CurrentFrame;
+                        pingPongReverse = leaderAnimator.PingPongReverse;
+                        syncedToPartner = true;
+                    }
+                }
+
+                if (!syncedToPartner)
+                {
+                    // Leader (or solo) randomly picks starting direction
+                    bool startReversed = Random.value > 0.5f;
+                    if (startReversed)
+                    {
+                        currentFrame = FrameCount - 1;
+                        pingPongReverse = true;
+                    }
+                    else
+                    {
+                        currentFrame = 0;
+                        pingPongReverse = false;
+                    }
+                }
+
+                // Store base position for sway and original position for movement
                 danceBasePosition = transform.position;
+                danceOriginalPosition = transform.position;
+                isDanceMoving = false;
+                danceMoveDecisionTimer = 0f;
 
                 // Initialize sway position based on starting frame
                 float frameProgress = (float)currentFrame / (FrameCount - 1);
@@ -100,6 +151,7 @@ namespace MasqueradeMystery
                     break;
                 case CharacterAnimationState.Dancing:
                     UpdateFrameAnimation(loop: false); // Ping-pong, not simple loop
+                    UpdateDanceMovement();
                     UpdateDanceSway();
                     break;
             }
@@ -181,10 +233,21 @@ namespace MasqueradeMystery
             // Find all colliders within minimum distance
             Collider2D[] nearby = Physics2D.OverlapCircleAll(position, minDistanceFromOthers);
 
+            // Get dance partner's collider to exclude from check
+            Collider2D partnerCollider = null;
+            if (character != null && character.DancePartner != null)
+            {
+                partnerCollider = character.DancePartner.GetComponent<Collider2D>();
+            }
+
             foreach (var collider in nearby)
             {
                 // Skip self
                 if (collider == myCollider)
+                    continue;
+
+                // Skip dance partner (they're allowed to be close)
+                if (collider == partnerCollider)
                     continue;
 
                 // Check if this is another character (has CharacterAnimator)
@@ -231,6 +294,132 @@ namespace MasqueradeMystery
             visuals?.SetFlipped(Random.value > 0.5f);
 
             UpdateVisuals();
+        }
+
+        private void UpdateDanceMovement()
+        {
+            // Right partner (follower) tracks left partner's position
+            if (isRightPartner)
+            {
+                UpdateFollowerMovement();
+                return;
+            }
+
+            // Left partner (leader) makes movement decisions
+            if (isDanceMoving)
+            {
+                // Move danceBasePosition toward target
+                Vector3 direction = (danceMoveTarget - danceBasePosition).normalized;
+                float distance = Vector3.Distance(danceBasePosition, danceMoveTarget);
+
+                if (distance < 0.1f)
+                {
+                    // Arrived at destination
+                    danceBasePosition = danceMoveTarget;
+                    isDanceMoving = false;
+                }
+                else
+                {
+                    // Slowly move base position (sway will be applied on top)
+                    danceBasePosition += direction * danceMoveSpeed * Time.deltaTime;
+                }
+            }
+            else
+            {
+                // Check if we should start moving
+                danceMoveDecisionTimer += Time.deltaTime;
+
+                if (danceMoveDecisionTimer >= 1f)
+                {
+                    danceMoveDecisionTimer = 0f;
+
+                    if (Random.value < danceMoveChance)
+                    {
+                        TryStartDanceMove();
+                    }
+                }
+            }
+        }
+
+        private void UpdateFollowerMovement()
+        {
+            // Get the leader (dance partner)
+            if (character == null || character.DancePartner == null) return;
+
+            var leaderAnimator = character.DancePartner.GetComponent<CharacterAnimator>();
+            if (leaderAnimator == null) return;
+
+            // Calculate where we should be relative to leader
+            // partnerOffset is calculated once when we first start following
+            if (partnerOffset == Vector3.zero)
+            {
+                partnerOffset = danceBasePosition - leaderAnimator.DanceBasePosition;
+            }
+
+            // Our target is always leader's position + our offset
+            Vector3 targetPosition = leaderAnimator.DanceBasePosition + partnerOffset;
+
+            // Move toward target position
+            float distance = Vector3.Distance(danceBasePosition, targetPosition);
+            if (distance > 0.01f)
+            {
+                Vector3 direction = (targetPosition - danceBasePosition).normalized;
+                danceBasePosition += direction * danceMoveSpeed * Time.deltaTime;
+
+                // Snap if very close
+                if (Vector3.Distance(danceBasePosition, targetPosition) < 0.05f)
+                {
+                    danceBasePosition = targetPosition;
+                }
+            }
+        }
+
+        private void TryStartDanceMove()
+        {
+            // Only the leader (left partner) initiates movement
+            if (isRightPartner) return;
+
+            // Get partner info for checking both positions
+            CharacterAnimator partnerAnimator = null;
+            Vector3 currentPartnerOffset = Vector3.zero;
+
+            if (character != null && character.DancePartner != null)
+            {
+                partnerAnimator = character.DancePartner.GetComponent<CharacterAnimator>();
+                if (partnerAnimator != null)
+                {
+                    currentPartnerOffset = partnerAnimator.DanceBasePosition - danceBasePosition;
+                }
+            }
+
+            // Try to find a valid position for both partners
+            for (int attempt = 0; attempt < maxWalkAttempts; attempt++)
+            {
+                // Pick a random point within danceMoveRadius of original dance position
+                Vector2 randomOffset = Random.insideUnitCircle * danceMoveRadius;
+                Vector3 leaderTarget = danceOriginalPosition + new Vector3(randomOffset.x, randomOffset.y, 0);
+                Vector3 followerTarget = leaderTarget + currentPartnerOffset;
+
+                // Clamp to scene bounds if available
+                if (SceneBounds.Instance != null)
+                {
+                    var bounds = SceneBounds.Instance.Bounds;
+                    leaderTarget.x = Mathf.Clamp(leaderTarget.x, bounds.xMin, bounds.xMax);
+                    leaderTarget.y = Mathf.Clamp(leaderTarget.y, bounds.yMin, bounds.yMax);
+                    followerTarget.x = Mathf.Clamp(followerTarget.x, bounds.xMin, bounds.xMax);
+                    followerTarget.y = Mathf.Clamp(followerTarget.y, bounds.yMin, bounds.yMax);
+                }
+
+                // Check if both positions are clear of other characters
+                if (IsPositionClear(leaderTarget) && IsPositionClear(followerTarget))
+                {
+                    danceMoveTarget = leaderTarget;
+                    isDanceMoving = true;
+                    return;
+                }
+            }
+
+            // Couldn't find a valid position, stay put
         }
 
         private void UpdateDanceSway()
