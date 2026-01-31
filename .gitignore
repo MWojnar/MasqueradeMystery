@@ -71,3 +71,7 @@ Thumbs.db
 .idea/
 .vs/
 .vscode/
+
+# Masquerade Mystery Editor scripts (one-time setup tools)
+Assets/MasqueradeMystery/Scripts/Editor/
+Assets/MasqueradeMystery/Scripts/Editor.meta

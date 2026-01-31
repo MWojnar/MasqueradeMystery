@@ -14,7 +14,6 @@ namespace MasqueradeMystery
             character = GetComponent<Character>();
             visuals = GetComponent<CharacterVisuals>();
 
-            // Ensure we have a collider for mouse detection
             var collider = GetComponent<Collider2D>();
             if (collider == null)
             {
@@ -22,20 +21,9 @@ namespace MasqueradeMystery
             }
         }
 
-        private void Start()
-        {
-            var collider = GetComponent<Collider2D>();
-            Debug.Log($"[CharacterHoverable] Start: {gameObject.name} | HasCollider: {collider != null} | ColliderEnabled: {collider?.enabled} | Layer: {gameObject.layer} | Position: {transform.position}");
-        }
-
         private void OnMouseEnter()
         {
-            Debug.Log($"[CharacterHoverable] OnMouseEnter: {gameObject.name}");
-            if (character == null)
-            {
-                Debug.LogWarning($"[CharacterHoverable] character is null on {gameObject.name}");
-                return;
-            }
+            if (character == null) return;
 
             isHovered = true;
             GameEvents.OnCharacterHoverStart?.Invoke(character);
@@ -48,7 +36,6 @@ namespace MasqueradeMystery
 
         private void OnMouseExit()
         {
-            Debug.Log($"[CharacterHoverable] OnMouseExit: {gameObject.name}");
             if (character == null) return;
 
             isHovered = false;
@@ -62,17 +49,11 @@ namespace MasqueradeMystery
 
         private void OnMouseDown()
         {
-            Debug.Log($"[CharacterHoverable] OnMouseDown: {gameObject.name}");
-            if (character == null)
-            {
-                Debug.LogWarning($"[CharacterHoverable] character is null on {gameObject.name}");
-                return;
-            }
+            if (character == null) return;
 
             GameEvents.OnCharacterClicked?.Invoke(character);
         }
 
-        // Cleanup on disable
         private void OnDisable()
         {
             if (isHovered && character != null)
