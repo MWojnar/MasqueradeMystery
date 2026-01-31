@@ -75,3 +75,7 @@ Thumbs.db
 # Masquerade Mystery Editor scripts (one-time setup tools)
 Assets/MasqueradeMystery/Scripts/Editor/
 Assets/MasqueradeMystery/Scripts/Editor.meta
+
+# FMOD
+fmod_editor.log
+Assets/Plugins/FMOD/Cache/

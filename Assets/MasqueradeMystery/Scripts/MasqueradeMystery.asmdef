@@ -2,7 +2,8 @@
     "name": "MasqueradeMystery",
     "rootNamespace": "MasqueradeMystery",
     "references": [
-        "Unity.TextMeshPro"
+        "Unity.TextMeshPro",
+        "FMODUnity"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

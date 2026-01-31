@@ -1,3 +1,5 @@
+using FMOD.Studio;
+using FMODUnity;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -21,14 +23,16 @@ namespace MasqueradeMystery
         [Header("Debug")]
         [SerializeField] private bool showDebugInfo = true;
 
+        public FMODUnity.EventReference MainMusic;
         public GameState CurrentState { get; private set; }
         public CharacterData TargetCharacter { get; private set; }
         public List<Hint> CurrentHints { get; private set; }
         public int WrongGuesses { get; private set; }
 
         private List<Character> allCharacters;
+		private EventInstance musicInstance;
 
-        private void Awake()
+		private void Awake()
         {
             // Singleton pattern
             if (Instance != null && Instance != this)
@@ -81,7 +85,13 @@ namespace MasqueradeMystery
 
         public void StartNewGame()
         {
-            WrongGuesses = 0;
+            if (!MainMusic.IsNull)
+            {
+                musicInstance = RuntimeManager.CreateInstance(MainMusic);
+                musicInstance.start();
+            }
+
+			WrongGuesses = 0;
 
             // Clear and spawn characters
             if (spawner != null)

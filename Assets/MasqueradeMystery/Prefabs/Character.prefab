@@ -336,11 +336,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0af43a426d3e389439760a6d08cb8587, type: 3}
   m_Name: 
   m_EditorClassIdentifier: MasqueradeMystery::MasqueradeMystery.CharacterAnimator
-  swayAmplitude: 0.15
-  swaySpeed: 2
-  bobAmplitude: 0.05
-  bobSpeed: 1.5
-  rotationAmplitude: 3
   isDancing: 0
 --- !u!1 &6344295248856093781
 GameObject:
