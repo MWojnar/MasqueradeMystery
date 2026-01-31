@@ -549,6 +549,36 @@ namespace MasqueradeMystery.Editor
 
             Debug.Log("Scene fix complete! Save the scene and press Play.");
         }
+
+        [MenuItem("Masquerade Mystery/Create or Fix UI")]
+        public static void CreateOrFixUI()
+        {
+            // Find or create Canvas
+            Canvas canvas = FindObjectOfType<Canvas>();
+            if (canvas != null)
+            {
+                // Delete existing canvas and recreate
+                DestroyImmediate(canvas.gameObject);
+                Debug.Log("Removed existing Canvas to recreate UI");
+            }
+
+            // Create fresh UI
+            CreateUI();
+
+            // Reconnect GameManager references
+            var gm = FindObjectOfType<GameManager>();
+            if (gm != null)
+            {
+                SerializedObject gmSO = new SerializedObject(gm);
+                gmSO.FindProperty("gameStatusUI").objectReferenceValue = FindObjectOfType<GameStatusUI>();
+                gmSO.FindProperty("gameOverUI").objectReferenceValue = FindObjectOfType<GameOverUI>();
+                gmSO.ApplyModifiedPropertiesWithoutUndo();
+                EditorUtility.SetDirty(gm);
+                Debug.Log("Connected UI references to GameManager");
+            }
+
+            Debug.Log("UI created! Save the scene and press Play.");
+        }
     }
 }
 #endif
