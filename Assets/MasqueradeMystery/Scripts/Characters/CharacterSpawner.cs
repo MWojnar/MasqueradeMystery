@@ -13,7 +13,7 @@ namespace MasqueradeMystery
         [SerializeField, Range(0f, 0.5f)] private float dancingPairPercentage = 0.3f;
         [SerializeField] private Rect spawnArea = new Rect(-10, -5, 20, 10);
         [SerializeField] private float minDistanceBetweenCharacters = 1.5f;
-        [SerializeField] private float dancePartnerDistance = 0.8f;
+        [SerializeField] private float dancePartnerDistance = 1.0f;
 
         private List<Character> spawnedCharacters = new List<Character>();
         private List<Vector2> usedPositions = new List<Vector2>();

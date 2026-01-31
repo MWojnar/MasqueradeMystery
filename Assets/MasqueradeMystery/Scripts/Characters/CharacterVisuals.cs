@@ -10,93 +10,199 @@ namespace MasqueradeMystery
         [SerializeField] private SpriteRenderer accessoryRenderer;
         [SerializeField] private SpriteRenderer partnerLineRenderer;
 
-        [Header("Body Sprites")]
-        [SerializeField] private Sprite suitSprite;      // Frame 0
-        [SerializeField] private Sprite dressSprite;     // Frame 2
+        [Header("Body Sprites - Idle")]
+        [SerializeField] private Sprite suitIdle;
+        [SerializeField] private Sprite dressIdle;
 
-        [Header("Accessory Sprites")]
-        [SerializeField] private Sprite bowtieSprite;    // Frame 1
-        [SerializeField] private Sprite hairbowSprite;   // Frame 3
+        [Header("Body Sprites - Walk (4 frames)")]
+        [SerializeField] private Sprite[] suitWalk;
+        [SerializeField] private Sprite[] dressWalk;
 
-        [Header("Mask Sprites - Non-Animal")]
-        [SerializeField] private Sprite plainEyesSprite;     // Frame 4
-        [SerializeField] private Sprite plainFullFaceSprite; // Frame 5
-        [SerializeField] private Sprite crownedSprite;       // Frame 6
-        [SerializeField] private Sprite jesterSprite;        // Frame 7
+        [Header("Body Sprites - Dance (4 frames)")]
+        [SerializeField] private Sprite[] suitDance;
+        [SerializeField] private Sprite[] dressDance;
 
-        [Header("Mask Sprites - Animal")]
-        [SerializeField] private Sprite foxSprite;       // Frame 8
-        [SerializeField] private Sprite rabbitSprite;    // Frame 9
-        [SerializeField] private Sprite sharkSprite;     // Frame 10
-        [SerializeField] private Sprite fishSprite;      // Frame 11
+        [Header("Accessory Sprites - Idle")]
+        [SerializeField] private Sprite bowtieIdle;
+        [SerializeField] private Sprite hairbowIdle;
+
+        [Header("Accessory Sprites - Walk (4 frames)")]
+        [SerializeField] private Sprite[] bowtieWalk;
+        [SerializeField] private Sprite[] hairbowWalk;
+
+        [Header("Accessory Sprites - Dance (4 frames)")]
+        [SerializeField] private Sprite[] bowtieDance;
+        [SerializeField] private Sprite[] hairbowDance;
+
+        [Header("Non-Animal Mask Sprites - Idle")]
+        [SerializeField] private Sprite plainEyesIdle;
+        [SerializeField] private Sprite plainFullFaceIdle;
+        [SerializeField] private Sprite crownedIdle;
+        [SerializeField] private Sprite jesterIdle;
+
+        [Header("Non-Animal Mask Sprites - Walk (4 frames)")]
+        [SerializeField] private Sprite[] plainEyesWalk;
+        [SerializeField] private Sprite[] plainFullFaceWalk;
+        [SerializeField] private Sprite[] crownedWalk;
+        [SerializeField] private Sprite[] jesterWalk;
+
+        [Header("Non-Animal Mask Sprites - Dance (4 frames)")]
+        [SerializeField] private Sprite[] plainEyesDance;
+        [SerializeField] private Sprite[] plainFullFaceDance;
+        [SerializeField] private Sprite[] crownedDance;
+        [SerializeField] private Sprite[] jesterDance;
+
+        [Header("Animal Mask Sprites - Idle")]
+        [SerializeField] private Sprite foxIdle;
+        [SerializeField] private Sprite rabbitIdle;
+        [SerializeField] private Sprite sharkIdle;
+        [SerializeField] private Sprite fishIdle;
+
+        [Header("Animal Mask Sprites - Walk (4 frames)")]
+        [SerializeField] private Sprite[] foxWalk;
+        [SerializeField] private Sprite[] rabbitWalk;
+        [SerializeField] private Sprite[] sharkWalk;
+        [SerializeField] private Sprite[] fishWalk;
+
+        [Header("Animal Mask Sprites - Dance (4 frames)")]
+        [SerializeField] private Sprite[] foxDance;
+        [SerializeField] private Sprite[] rabbitDance;
+        [SerializeField] private Sprite[] sharkDance;
+        [SerializeField] private Sprite[] fishDance;
 
         [Header("Highlight Settings")]
         [SerializeField] private Color normalColor = Color.white;
         [SerializeField] private Color highlightColor = new Color(1.2f, 1.2f, 1.2f, 1f);
 
+        private CharacterData currentData;
+        private CharacterAnimationState currentState = CharacterAnimationState.Idle;
+        private int currentFrame;
+
         public void UpdateVisuals(CharacterData data)
         {
-            UpdateBody(data.Clothing);
-            UpdateMask(data.Mask);
-            UpdateAccessory(data);
+            currentData = data;
+            currentState = CharacterAnimationState.Idle;
+            currentFrame = 0;
+
+            ApplySprites();
             UpdatePartnerIndicator(data.IsDancing);
         }
 
-        private void UpdateBody(ClothingType clothing)
+        public void SetAnimationState(CharacterAnimationState state, int frame)
+        {
+            if (currentData == null) return;
+
+            currentState = state;
+            currentFrame = frame;
+            ApplySprites();
+        }
+
+        private void ApplySprites()
+        {
+            if (currentData == null) return;
+
+            ApplyBodySprite();
+            ApplyMaskSprite();
+            ApplyAccessorySprite();
+        }
+
+        private void ApplyBodySprite()
         {
             if (bodyRenderer == null) return;
 
-            bodyRenderer.sprite = clothing == ClothingType.Suit ? suitSprite : dressSprite;
+            bool isSuit = currentData.Clothing == ClothingType.Suit;
+
+            Sprite sprite = currentState switch
+            {
+                CharacterAnimationState.Idle => isSuit ? suitIdle : dressIdle,
+                CharacterAnimationState.Walking => GetFrameSprite(isSuit ? suitWalk : dressWalk, isSuit ? suitIdle : dressIdle),
+                CharacterAnimationState.Dancing => GetFrameSprite(isSuit ? suitDance : dressDance, isSuit ? suitIdle : dressIdle),
+                _ => isSuit ? suitIdle : dressIdle
+            };
+
+            bodyRenderer.sprite = sprite;
             bodyRenderer.color = normalColor;
         }
 
-        private void UpdateMask(MaskIdentifier mask)
+        private void ApplyMaskSprite()
         {
             if (maskRenderer == null) return;
 
-            Sprite maskSprite = null;
+            Sprite sprite = GetMaskSprite();
+            maskRenderer.sprite = sprite;
+            maskRenderer.color = normalColor;
+            maskRenderer.gameObject.SetActive(sprite != null);
+        }
+
+        private Sprite GetMaskSprite()
+        {
+            var mask = currentData.Mask;
 
             if (mask.IsAnimalMask)
             {
-                maskSprite = mask.AnimalMask switch
+                return mask.AnimalMask switch
                 {
-                    AnimalMaskType.Fox => foxSprite,
-                    AnimalMaskType.Rabbit => rabbitSprite,
-                    AnimalMaskType.Shark => sharkSprite,
-                    AnimalMaskType.Fish => fishSprite,
+                    AnimalMaskType.Fox => GetMaskByState(foxIdle, foxWalk, foxDance),
+                    AnimalMaskType.Rabbit => GetMaskByState(rabbitIdle, rabbitWalk, rabbitDance),
+                    AnimalMaskType.Shark => GetMaskByState(sharkIdle, sharkWalk, sharkDance),
+                    AnimalMaskType.Fish => GetMaskByState(fishIdle, fishWalk, fishDance),
                     _ => null
                 };
             }
             else
             {
-                maskSprite = mask.NonAnimalMask switch
+                return mask.NonAnimalMask switch
                 {
-                    NonAnimalMaskType.PlainEyes => plainEyesSprite,
-                    NonAnimalMaskType.PlainFullFace => plainFullFaceSprite,
-                    NonAnimalMaskType.Crowned => crownedSprite,
-                    NonAnimalMaskType.Jester => jesterSprite,
+                    NonAnimalMaskType.PlainEyes => GetMaskByState(plainEyesIdle, plainEyesWalk, plainEyesDance),
+                    NonAnimalMaskType.PlainFullFace => GetMaskByState(plainFullFaceIdle, plainFullFaceWalk, plainFullFaceDance),
+                    NonAnimalMaskType.Crowned => GetMaskByState(crownedIdle, crownedWalk, crownedDance),
+                    NonAnimalMaskType.Jester => GetMaskByState(jesterIdle, jesterWalk, jesterDance),
                     _ => null
                 };
             }
-
-            maskRenderer.sprite = maskSprite;
-            maskRenderer.color = normalColor;
-            maskRenderer.gameObject.SetActive(maskSprite != null);
         }
 
-        private void UpdateAccessory(CharacterData data)
+        private Sprite GetMaskByState(Sprite idle, Sprite[] walk, Sprite[] dance)
+        {
+            return currentState switch
+            {
+                CharacterAnimationState.Idle => idle,
+                CharacterAnimationState.Walking => GetFrameSprite(walk, idle),
+                CharacterAnimationState.Dancing => GetFrameSprite(dance, idle),
+                _ => idle
+            };
+        }
+
+        private void ApplyAccessorySprite()
         {
             if (accessoryRenderer == null) return;
 
-            if (data.HasBowtie && bowtieSprite != null)
+            Sprite sprite = null;
+
+            if (currentData.HasBowtie)
             {
-                accessoryRenderer.sprite = bowtieSprite;
-                accessoryRenderer.color = normalColor;
-                accessoryRenderer.gameObject.SetActive(true);
+                sprite = currentState switch
+                {
+                    CharacterAnimationState.Idle => bowtieIdle,
+                    CharacterAnimationState.Walking => GetFrameSprite(bowtieWalk, bowtieIdle),
+                    CharacterAnimationState.Dancing => GetFrameSprite(bowtieDance, bowtieIdle),
+                    _ => bowtieIdle
+                };
             }
-            else if (data.HasHairbow && hairbowSprite != null)
+            else if (currentData.HasHairbow)
             {
-                accessoryRenderer.sprite = hairbowSprite;
+                sprite = currentState switch
+                {
+                    CharacterAnimationState.Idle => hairbowIdle,
+                    CharacterAnimationState.Walking => GetFrameSprite(hairbowWalk, hairbowIdle),
+                    CharacterAnimationState.Dancing => GetFrameSprite(hairbowDance, hairbowIdle),
+                    _ => hairbowIdle
+                };
+            }
+
+            if (sprite != null)
+            {
+                accessoryRenderer.sprite = sprite;
                 accessoryRenderer.color = normalColor;
                 accessoryRenderer.gameObject.SetActive(true);
             }
@@ -104,6 +210,15 @@ namespace MasqueradeMystery
             {
                 accessoryRenderer.gameObject.SetActive(false);
             }
+        }
+
+        private Sprite GetFrameSprite(Sprite[] frames, Sprite fallback)
+        {
+            if (frames == null || frames.Length == 0)
+                return fallback;
+
+            int index = Mathf.Clamp(currentFrame, 0, frames.Length - 1);
+            return frames[index] != null ? frames[index] : fallback;
         }
 
         private void UpdatePartnerIndicator(bool isDancing)

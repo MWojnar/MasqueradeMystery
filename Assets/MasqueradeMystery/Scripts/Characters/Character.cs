@@ -27,9 +27,11 @@ namespace MasqueradeMystery
                 }
             }
 
-            if (animator != null)
+            // Note: SetDancing with rightPartner is called later in SetDancePartner
+            // For now, just mark as dancing without partner info
+            if (animator != null && !data.IsDancing)
             {
-                animator.SetDancing(data.IsDancing);
+                animator.SetDancing(false);
             }
         }
 
@@ -42,6 +44,12 @@ namespace MasqueradeMystery
             {
                 bool isOnRight = transform.position.x > partner.transform.position.x;
                 visuals.SetFlipped(isOnRight);
+
+                // Configure dancing animation - right partner starts with reversed animation
+                if (animator != null)
+                {
+                    animator.SetDancing(true, rightPartner: isOnRight);
+                }
             }
         }
 

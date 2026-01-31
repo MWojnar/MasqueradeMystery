@@ -35,6 +35,9 @@ TextureImporter:
   - first:
       213: 3346439723396537694
     second: spr_stand_strip1x12_10
+  - first:
+      213: -9148350495570304644
+    second: spr_stand_strip1x12_11
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -134,7 +137,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 960
+        y: 1056
         width: 64
         height: 96
       alignment: 0
@@ -156,7 +159,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 864
+        y: 960
         width: 64
         height: 96
       alignment: 0
@@ -178,7 +181,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 768
+        y: 864
         width: 64
         height: 96
       alignment: 0
@@ -200,7 +203,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 672
+        y: 768
         width: 64
         height: 96
       alignment: 0
@@ -222,7 +225,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 576
+        y: 672
         width: 64
         height: 96
       alignment: 0
@@ -244,7 +247,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 480
+        y: 576
         width: 64
         height: 96
       alignment: 0
@@ -266,7 +269,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 384
+        y: 480
         width: 64
         height: 96
       alignment: 0
@@ -288,7 +291,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 288
+        y: 384
         width: 64
         height: 96
       alignment: 0
@@ -310,7 +313,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 192
+        y: 288
         width: 64
         height: 96
       alignment: 0
@@ -332,7 +335,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 96
+        y: 192
         width: 64
         height: 96
       alignment: 0
@@ -354,7 +357,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 0
+        y: 96
         width: 64
         height: 96
       alignment: 0
@@ -371,11 +374,33 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
+    - serializedVersion: 2
+      name: spr_stand_strip1x12_11
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 64
+        height: 96
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c7163ceb1b78a0180800000000000000
+      internalID: -9148350495570304644
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     customData: 
     physicsShape: []
     bones: []
-    spriteID: f8f76f8144370764cb3ebe290c21db13
+    spriteID: 359d718ddf70d58499051e05a719cf36
     internalID: 0
     vertices: []
     indices: 
@@ -390,6 +415,7 @@ TextureImporter:
       spr_stand_strip1x12_0: -5523261043536253178
       spr_stand_strip1x12_1: -3797140236300573179
       spr_stand_strip1x12_10: 3346439723396537694
+      spr_stand_strip1x12_11: -9148350495570304644
       spr_stand_strip1x12_2: 5709872552911356366
       spr_stand_strip1x12_3: 5922596897428330712
       spr_stand_strip1x12_4: -1103086034171714959
