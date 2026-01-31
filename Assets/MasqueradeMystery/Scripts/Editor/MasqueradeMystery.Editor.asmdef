@@ -1,0 +1,19 @@
+{
+    "name": "MasqueradeMystery.Editor",
+    "rootNamespace": "MasqueradeMystery.Editor",
+    "references": [
+        "MasqueradeMystery",
+        "Unity.TextMeshPro"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
