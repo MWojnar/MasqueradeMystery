@@ -22,9 +22,20 @@ namespace MasqueradeMystery
             }
         }
 
+        private void Start()
+        {
+            var collider = GetComponent<Collider2D>();
+            Debug.Log($"[CharacterHoverable] Start: {gameObject.name} | HasCollider: {collider != null} | ColliderEnabled: {collider?.enabled} | Layer: {gameObject.layer} | Position: {transform.position}");
+        }
+
         private void OnMouseEnter()
         {
-            if (character == null) return;
+            Debug.Log($"[CharacterHoverable] OnMouseEnter: {gameObject.name}");
+            if (character == null)
+            {
+                Debug.LogWarning($"[CharacterHoverable] character is null on {gameObject.name}");
+                return;
+            }
 
             isHovered = true;
             GameEvents.OnCharacterHoverStart?.Invoke(character);
@@ -37,6 +48,7 @@ namespace MasqueradeMystery
 
         private void OnMouseExit()
         {
+            Debug.Log($"[CharacterHoverable] OnMouseExit: {gameObject.name}");
             if (character == null) return;
 
             isHovered = false;
@@ -50,7 +62,12 @@ namespace MasqueradeMystery
 
         private void OnMouseDown()
         {
-            if (character == null) return;
+            Debug.Log($"[CharacterHoverable] OnMouseDown: {gameObject.name}");
+            if (character == null)
+            {
+                Debug.LogWarning($"[CharacterHoverable] character is null on {gameObject.name}");
+                return;
+            }
 
             GameEvents.OnCharacterClicked?.Invoke(character);
         }

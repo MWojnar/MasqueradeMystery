@@ -2268,7 +2268,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 01a4bfc127f7a2149a82b499fdeef952, type: 3}
   m_Name: 
   m_EditorClassIdentifier: MasqueradeMystery::MasqueradeMystery.CharacterSpawner
-  characterPrefab: {fileID: 4542832528982065307, guid: e478b7eb49deb994e825395dba76b640, type: 3}
+  characterPrefab: {fileID: 2282271587734427353, guid: e478b7eb49deb994e825395dba76b640, type: 3}
   characterCount: 20
   dancingPairPercentage: 0.3
   spawnArea:

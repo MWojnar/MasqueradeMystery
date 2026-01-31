@@ -33,25 +33,47 @@ namespace MasqueradeMystery.Editor
         [MenuItem("Masquerade Mystery/Create Character Prefab")]
         public static void CreateCharacterPrefab()
         {
-            // Check if prefab already exists
+            CreateCharacterPrefabInternal(false);
+        }
+
+        [MenuItem("Masquerade Mystery/Recreate Character Prefab (Force)")]
+        public static void RecreateCharacterPrefab()
+        {
+            CreateCharacterPrefabInternal(true);
+        }
+
+        private static void CreateCharacterPrefabInternal(bool force)
+        {
             string prefabPath = "Assets/MasqueradeMystery/Prefabs/Character.prefab";
+
+            // Check if prefab already exists
             if (AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath) != null)
             {
-                Debug.Log("Character prefab already exists at " + prefabPath);
-                return;
+                if (!force)
+                {
+                    Debug.Log("Character prefab already exists at " + prefabPath);
+                    return;
+                }
+                else
+                {
+                    AssetDatabase.DeleteAsset(prefabPath);
+                    AssetDatabase.Refresh();
+                    Debug.Log("Deleted old Character prefab for recreation");
+                }
             }
 
             // Create character GameObject
             GameObject character = new GameObject("Character");
 
-            // Add components
+            // Add components (collider must come before CharacterHoverable due to RequireComponent)
+            var collider = character.AddComponent<BoxCollider2D>();
+            collider.size = new Vector2(1f, 1.5f);
+            collider.offset = new Vector2(0, 0.25f);
+
             var charComponent = character.AddComponent<Character>();
             var visuals = character.AddComponent<CharacterVisuals>();
             var hoverable = character.AddComponent<CharacterHoverable>();
             var animator = character.AddComponent<CharacterAnimator>();
-            var collider = character.AddComponent<BoxCollider2D>();
-            collider.size = new Vector2(1f, 1.5f);
-            collider.offset = new Vector2(0, 0.25f);
 
             // Create body sprite
             GameObject body = new GameObject("Body");
@@ -402,11 +424,11 @@ namespace MasqueradeMystery.Editor
             so.ApplyModifiedPropertiesWithoutUndo();
 
             // Connect to GameManager
-            var gm = FindObjectOfType<GameManager>();
+            var gm = Object.FindFirstObjectByType<GameManager>();
             if (gm != null)
             {
                 SerializedObject gmSO = new SerializedObject(gm);
-                gmSO.FindProperty("gameStatusUI").objectReferenceValue = FindObjectOfType<GameStatusUI>();
+                gmSO.FindProperty("gameStatusUI").objectReferenceValue = Object.FindFirstObjectByType<GameStatusUI>();
                 gmSO.FindProperty("gameOverUI").objectReferenceValue = gameOverUI;
                 gmSO.ApplyModifiedPropertiesWithoutUndo();
             }
@@ -508,7 +530,7 @@ namespace MasqueradeMystery.Editor
         public static void FixExistingScene()
         {
             // Fix Canvas Scaler
-            Canvas canvas = FindObjectOfType<Canvas>();
+            Canvas canvas = Object.FindFirstObjectByType<Canvas>();
             if (canvas != null)
             {
                 var scaler = canvas.GetComponent<CanvasScaler>();
@@ -524,16 +546,11 @@ namespace MasqueradeMystery.Editor
             }
 
             // Recreate Character prefab with proper sprites
-            string prefabPath = "Assets/MasqueradeMystery/Prefabs/Character.prefab";
-            if (AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath) != null)
-            {
-                AssetDatabase.DeleteAsset(prefabPath);
-                Debug.Log("Deleted old Character prefab");
-            }
-            CreateCharacterPrefab();
+            CreateCharacterPrefabInternal(true);
 
             // Reassign prefab to spawner
-            CharacterSpawner spawner = FindObjectOfType<CharacterSpawner>();
+            string prefabPath = "Assets/MasqueradeMystery/Prefabs/Character.prefab";
+            CharacterSpawner spawner = Object.FindFirstObjectByType<CharacterSpawner>();
             if (spawner != null)
             {
                 GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
@@ -550,11 +567,93 @@ namespace MasqueradeMystery.Editor
             Debug.Log("Scene fix complete! Save the scene and press Play.");
         }
 
+        [MenuItem("Masquerade Mystery/Diagnose Scene")]
+        public static void DiagnoseScene()
+        {
+            Debug.Log("=== MASQUERADE MYSTERY SCENE DIAGNOSIS ===");
+
+            // Check Camera
+            Camera mainCam = Camera.main;
+            if (mainCam == null)
+            {
+                Debug.LogError("NO MAIN CAMERA FOUND! Tag a camera as 'MainCamera'");
+            }
+            else
+            {
+                Debug.Log($"Main Camera: {mainCam.name} | Orthographic: {mainCam.orthographic} | Size: {mainCam.orthographicSize}");
+            }
+
+            // Check Character Prefab
+            string prefabPath = "Assets/MasqueradeMystery/Prefabs/Character.prefab";
+            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
+            if (prefab == null)
+            {
+                Debug.LogError("CHARACTER PREFAB NOT FOUND at " + prefabPath);
+            }
+            else
+            {
+                var hasCharacter = prefab.GetComponent<Character>() != null;
+                var hasHoverable = prefab.GetComponent<CharacterHoverable>() != null;
+                var hasCollider = prefab.GetComponent<Collider2D>() != null;
+                var collider = prefab.GetComponent<Collider2D>();
+
+                Debug.Log($"Character Prefab: HasCharacter={hasCharacter} | HasHoverable={hasHoverable} | HasCollider={hasCollider}");
+                if (collider != null)
+                {
+                    var box = collider as BoxCollider2D;
+                    if (box != null)
+                    {
+                        Debug.Log($"  BoxCollider2D: Size={box.size} | Offset={box.offset} | IsTrigger={box.isTrigger}");
+                    }
+                }
+
+                if (!hasHoverable)
+                {
+                    Debug.LogError("CHARACTER PREFAB IS MISSING CharacterHoverable COMPONENT!");
+                }
+                if (!hasCollider)
+                {
+                    Debug.LogError("CHARACTER PREFAB IS MISSING Collider2D COMPONENT!");
+                }
+            }
+
+            // Check CharacterSpawner
+            CharacterSpawner spawner = Object.FindFirstObjectByType<CharacterSpawner>();
+            if (spawner == null)
+            {
+                Debug.LogError("NO CharacterSpawner IN SCENE!");
+            }
+            else
+            {
+                SerializedObject so = new SerializedObject(spawner);
+                var prefabRef = so.FindProperty("characterPrefab").objectReferenceValue;
+                Debug.Log($"CharacterSpawner: PrefabAssigned={prefabRef != null}");
+                if (prefabRef == null)
+                {
+                    Debug.LogError("CharacterSpawner has NO PREFAB ASSIGNED!");
+                }
+            }
+
+            // Check for spawned characters in play mode
+            var characters = Object.FindObjectsByType<Character>(FindObjectsSortMode.None);
+            Debug.Log($"Characters in scene: {characters.Length}");
+
+            if (characters.Length > 0)
+            {
+                var first = characters[0];
+                var hoverable = first.GetComponent<CharacterHoverable>();
+                var collider = first.GetComponent<Collider2D>();
+                Debug.Log($"First character: {first.name} | HasHoverable={hoverable != null} | HasCollider={collider != null} | Layer={first.gameObject.layer} ({LayerMask.LayerToName(first.gameObject.layer)})");
+            }
+
+            Debug.Log("=== END DIAGNOSIS ===");
+        }
+
         [MenuItem("Masquerade Mystery/Create or Fix UI")]
         public static void CreateOrFixUI()
         {
             // Find or create Canvas
-            Canvas canvas = FindObjectOfType<Canvas>();
+            Canvas canvas = Object.FindFirstObjectByType<Canvas>();
             if (canvas != null)
             {
                 // Delete existing canvas and recreate
@@ -566,12 +665,12 @@ namespace MasqueradeMystery.Editor
             CreateUI();
 
             // Reconnect GameManager references
-            var gm = FindObjectOfType<GameManager>();
+            var gm = Object.FindFirstObjectByType<GameManager>();
             if (gm != null)
             {
                 SerializedObject gmSO = new SerializedObject(gm);
-                gmSO.FindProperty("gameStatusUI").objectReferenceValue = FindObjectOfType<GameStatusUI>();
-                gmSO.FindProperty("gameOverUI").objectReferenceValue = FindObjectOfType<GameOverUI>();
+                gmSO.FindProperty("gameStatusUI").objectReferenceValue = Object.FindFirstObjectByType<GameStatusUI>();
+                gmSO.FindProperty("gameOverUI").objectReferenceValue = Object.FindFirstObjectByType<GameOverUI>();
                 gmSO.ApplyModifiedPropertiesWithoutUndo();
                 EditorUtility.SetDirty(gm);
                 Debug.Log("Connected UI references to GameManager");
