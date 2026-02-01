@@ -238,6 +238,7 @@ namespace MasqueradeMystery
                 Debug.Log("Time's up! Round failed.");
             }
 
+            SoundManager.Instance?.PlayFailureJingle();
             EndRound(false);
         }
 
@@ -369,6 +370,9 @@ namespace MasqueradeMystery
             playerAnimator.PlayOneShotAnimation(CharacterAnimationState.Accusing, () => playerAnimDone = true);
             accusedAnimator.PlayOneShotAnimation(CharacterAnimationState.Accused, () => accusedAnimDone = true);
 
+            // Play accusation sound at accused character's position
+            SoundManager.Instance?.PlayAccusation(accused.transform.position);
+
             // 7. Wait for both to complete with timeout
             float timeout = 5f; // Max wait time
             float elapsed = 0f;
@@ -469,6 +473,7 @@ namespace MasqueradeMystery
                     {
                         Debug.Log("Game Over - Too many wrong guesses!");
                     }
+                    SoundManager.Instance?.PlayFailureJingle();
                     EndRound(false);
                 }
             }

@@ -72,6 +72,7 @@ namespace MasqueradeMystery
             if (panel != null)
             {
                 panel.SetActive(true);
+                SoundManager.Instance?.PlayScoreTally();
             }
 
             // Title

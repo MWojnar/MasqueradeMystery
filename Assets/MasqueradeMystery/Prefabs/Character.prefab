@@ -332,13 +332,11 @@ MonoBehaviour:
   - {fileID: 67357544537889739, guid: f4e1005e6a95a6a428aa1cd6c174c203, type: 3}
   - {fileID: 2023648854028702085, guid: f4e1005e6a95a6a428aa1cd6c174c203, type: 3}
   suitAccused:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
+  - {fileID: -8209304912129202836, guid: 9da76db3af050a244807418ed48eae2b, type: 3}
+  - {fileID: 1062968471758482968, guid: 9da76db3af050a244807418ed48eae2b, type: 3}
   dressAccused:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
+  - {fileID: -3409817142008061429, guid: 9da76db3af050a244807418ed48eae2b, type: 3}
+  - {fileID: -6015116438977791087, guid: 9da76db3af050a244807418ed48eae2b, type: 3}
   bowtieIdle: {fileID: -3797140236300573179, guid: c71de07bc44637e458ce3bbe278fa520, type: 3}
   hairbowIdle: {fileID: 5922596897428330712, guid: c71de07bc44637e458ce3bbe278fa520, type: 3}
   bowtieWalk:
@@ -372,13 +370,11 @@ MonoBehaviour:
   - {fileID: -7115464613099973626, guid: f4e1005e6a95a6a428aa1cd6c174c203, type: 3}
   - {fileID: 4302514123863042682, guid: f4e1005e6a95a6a428aa1cd6c174c203, type: 3}
   bowtieAccused:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
+  - {fileID: -2341019600556917200, guid: 9da76db3af050a244807418ed48eae2b, type: 3}
+  - {fileID: 1452928184116546612, guid: 9da76db3af050a244807418ed48eae2b, type: 3}
   hairbowAccused:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
+  - {fileID: 9207436792771707120, guid: 9da76db3af050a244807418ed48eae2b, type: 3}
+  - {fileID: -6619468221862771003, guid: 9da76db3af050a244807418ed48eae2b, type: 3}
   plainEyesIdle: {fileID: -1103086034171714959, guid: c71de07bc44637e458ce3bbe278fa520, type: 3}
   plainFullFaceIdle: {fileID: -1496167904473400739, guid: c71de07bc44637e458ce3bbe278fa520, type: 3}
   crownedIdle: {fileID: -1347944467025567232, guid: c71de07bc44637e458ce3bbe278fa520, type: 3}
@@ -444,21 +440,17 @@ MonoBehaviour:
   - {fileID: 7665218788311505994, guid: f4e1005e6a95a6a428aa1cd6c174c203, type: 3}
   - {fileID: 2030420791021561811, guid: f4e1005e6a95a6a428aa1cd6c174c203, type: 3}
   plainEyesAccused:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
+  - {fileID: -4419343784386987766, guid: 9da76db3af050a244807418ed48eae2b, type: 3}
+  - {fileID: 9165043496586929914, guid: 9da76db3af050a244807418ed48eae2b, type: 3}
   plainFullFaceAccused:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
+  - {fileID: 6835875775671344566, guid: 9da76db3af050a244807418ed48eae2b, type: 3}
+  - {fileID: 2283929214216619741, guid: 9da76db3af050a244807418ed48eae2b, type: 3}
   crownedAccused:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
+  - {fileID: -7153482733413459767, guid: 9da76db3af050a244807418ed48eae2b, type: 3}
+  - {fileID: 7134005677251553983, guid: 9da76db3af050a244807418ed48eae2b, type: 3}
   jesterAccused:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
+  - {fileID: 7804786967535623314, guid: 9da76db3af050a244807418ed48eae2b, type: 3}
+  - {fileID: -3841939092052106835, guid: 9da76db3af050a244807418ed48eae2b, type: 3}
   foxIdle: {fileID: 4405474514931067254, guid: c71de07bc44637e458ce3bbe278fa520, type: 3}
   rabbitIdle: {fileID: 9000175636703215256, guid: c71de07bc44637e458ce3bbe278fa520, type: 3}
   sharkIdle: {fileID: 3346439723396537694, guid: c71de07bc44637e458ce3bbe278fa520, type: 3}
@@ -524,21 +516,17 @@ MonoBehaviour:
   - {fileID: 3865512412845680826, guid: f4e1005e6a95a6a428aa1cd6c174c203, type: 3}
   - {fileID: -2534678522679792287, guid: f4e1005e6a95a6a428aa1cd6c174c203, type: 3}
   foxAccused:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
+  - {fileID: -9131061262210557646, guid: 9da76db3af050a244807418ed48eae2b, type: 3}
+  - {fileID: -2439757649390242593, guid: 9da76db3af050a244807418ed48eae2b, type: 3}
   rabbitAccused:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
+  - {fileID: -5996543902246672927, guid: 9da76db3af050a244807418ed48eae2b, type: 3}
+  - {fileID: -1798951586158752991, guid: 9da76db3af050a244807418ed48eae2b, type: 3}
   sharkAccused:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
+  - {fileID: 5081945348019122926, guid: 9da76db3af050a244807418ed48eae2b, type: 3}
+  - {fileID: -4848922570973487362, guid: 9da76db3af050a244807418ed48eae2b, type: 3}
   fishAccused:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
+  - {fileID: -5751691446172392428, guid: 9da76db3af050a244807418ed48eae2b, type: 3}
+  - {fileID: 3173556415199138784, guid: 9da76db3af050a244807418ed48eae2b, type: 3}
   outlineMaterial: {fileID: 2100000, guid: 659eaecb48c6443499563f8c02709f69, type: 2}
   outlineColor: {r: 1, g: 0.93495333, b: 0, a: 1}
   normalColor: {r: 1, g: 1, b: 1, a: 1}
