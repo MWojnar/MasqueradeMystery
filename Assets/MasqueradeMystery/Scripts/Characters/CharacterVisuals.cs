@@ -22,6 +22,14 @@ namespace MasqueradeMystery
         [SerializeField] private Sprite[] suitDance;
         [SerializeField] private Sprite[] dressDance;
 
+        [Header("Body Sprites - Accusing (5 frames)")]
+        [SerializeField] private Sprite[] suitAccusing;
+        [SerializeField] private Sprite[] dressAccusing;
+
+        [Header("Body Sprites - Accused (5 frames)")]
+        [SerializeField] private Sprite[] suitAccused;
+        [SerializeField] private Sprite[] dressAccused;
+
         [Header("Accessory Sprites - Idle")]
         [SerializeField] private Sprite bowtieIdle;
         [SerializeField] private Sprite hairbowIdle;
@@ -33,6 +41,14 @@ namespace MasqueradeMystery
         [Header("Accessory Sprites - Dance (4 frames)")]
         [SerializeField] private Sprite[] bowtieDance;
         [SerializeField] private Sprite[] hairbowDance;
+
+        [Header("Accessory Sprites - Accusing (5 frames)")]
+        [SerializeField] private Sprite[] bowtieAccusing;
+        [SerializeField] private Sprite[] hairbowAccusing;
+
+        [Header("Accessory Sprites - Accused (5 frames)")]
+        [SerializeField] private Sprite[] bowtieAccused;
+        [SerializeField] private Sprite[] hairbowAccused;
 
         [Header("Non-Animal Mask Sprites - Idle")]
         [SerializeField] private Sprite plainEyesIdle;
@@ -52,6 +68,18 @@ namespace MasqueradeMystery
         [SerializeField] private Sprite[] crownedDance;
         [SerializeField] private Sprite[] jesterDance;
 
+        [Header("Non-Animal Mask Sprites - Accusing (5 frames)")]
+        [SerializeField] private Sprite[] plainEyesAccusing;
+        [SerializeField] private Sprite[] plainFullFaceAccusing;
+        [SerializeField] private Sprite[] crownedAccusing;
+        [SerializeField] private Sprite[] jesterAccusing;
+
+        [Header("Non-Animal Mask Sprites - Accused (5 frames)")]
+        [SerializeField] private Sprite[] plainEyesAccused;
+        [SerializeField] private Sprite[] plainFullFaceAccused;
+        [SerializeField] private Sprite[] crownedAccused;
+        [SerializeField] private Sprite[] jesterAccused;
+
         [Header("Animal Mask Sprites - Idle")]
         [SerializeField] private Sprite foxIdle;
         [SerializeField] private Sprite rabbitIdle;
@@ -69,6 +97,18 @@ namespace MasqueradeMystery
         [SerializeField] private Sprite[] rabbitDance;
         [SerializeField] private Sprite[] sharkDance;
         [SerializeField] private Sprite[] fishDance;
+
+        [Header("Animal Mask Sprites - Accusing (5 frames)")]
+        [SerializeField] private Sprite[] foxAccusing;
+        [SerializeField] private Sprite[] rabbitAccusing;
+        [SerializeField] private Sprite[] sharkAccusing;
+        [SerializeField] private Sprite[] fishAccusing;
+
+        [Header("Animal Mask Sprites - Accused (5 frames)")]
+        [SerializeField] private Sprite[] foxAccused;
+        [SerializeField] private Sprite[] rabbitAccused;
+        [SerializeField] private Sprite[] sharkAccused;
+        [SerializeField] private Sprite[] fishAccused;
 
         [Header("Outline Settings")]
         [SerializeField] private Material outlineMaterial;
@@ -153,6 +193,8 @@ namespace MasqueradeMystery
                 CharacterAnimationState.Idle => isSuit ? suitIdle : dressIdle,
                 CharacterAnimationState.Walking => GetFrameSprite(isSuit ? suitWalk : dressWalk, isSuit ? suitIdle : dressIdle),
                 CharacterAnimationState.Dancing => GetFrameSprite(isSuit ? suitDance : dressDance, isSuit ? suitIdle : dressIdle),
+                CharacterAnimationState.Accusing => GetFrameSprite(isSuit ? suitAccusing : dressAccusing, isSuit ? suitIdle : dressIdle),
+                CharacterAnimationState.Accused => GetFrameSprite(isSuit ? suitAccused : dressAccused, isSuit ? suitIdle : dressIdle),
                 _ => isSuit ? suitIdle : dressIdle
             };
 
@@ -178,10 +220,10 @@ namespace MasqueradeMystery
             {
                 return mask.AnimalMask switch
                 {
-                    AnimalMaskType.Fox => GetMaskByState(foxIdle, foxWalk, foxDance),
-                    AnimalMaskType.Rabbit => GetMaskByState(rabbitIdle, rabbitWalk, rabbitDance),
-                    AnimalMaskType.Shark => GetMaskByState(sharkIdle, sharkWalk, sharkDance),
-                    AnimalMaskType.Fish => GetMaskByState(fishIdle, fishWalk, fishDance),
+                    AnimalMaskType.Fox => GetMaskByState(foxIdle, foxWalk, foxDance, foxAccusing, foxAccused),
+                    AnimalMaskType.Rabbit => GetMaskByState(rabbitIdle, rabbitWalk, rabbitDance, rabbitAccusing, rabbitAccused),
+                    AnimalMaskType.Shark => GetMaskByState(sharkIdle, sharkWalk, sharkDance, sharkAccusing, sharkAccused),
+                    AnimalMaskType.Fish => GetMaskByState(fishIdle, fishWalk, fishDance, fishAccusing, fishAccused),
                     _ => null
                 };
             }
@@ -189,22 +231,24 @@ namespace MasqueradeMystery
             {
                 return mask.NonAnimalMask switch
                 {
-                    NonAnimalMaskType.PlainEyes => GetMaskByState(plainEyesIdle, plainEyesWalk, plainEyesDance),
-                    NonAnimalMaskType.PlainFullFace => GetMaskByState(plainFullFaceIdle, plainFullFaceWalk, plainFullFaceDance),
-                    NonAnimalMaskType.Crowned => GetMaskByState(crownedIdle, crownedWalk, crownedDance),
-                    NonAnimalMaskType.Jester => GetMaskByState(jesterIdle, jesterWalk, jesterDance),
+                    NonAnimalMaskType.PlainEyes => GetMaskByState(plainEyesIdle, plainEyesWalk, plainEyesDance, plainEyesAccusing, plainEyesAccused),
+                    NonAnimalMaskType.PlainFullFace => GetMaskByState(plainFullFaceIdle, plainFullFaceWalk, plainFullFaceDance, plainFullFaceAccusing, plainFullFaceAccused),
+                    NonAnimalMaskType.Crowned => GetMaskByState(crownedIdle, crownedWalk, crownedDance, crownedAccusing, crownedAccused),
+                    NonAnimalMaskType.Jester => GetMaskByState(jesterIdle, jesterWalk, jesterDance, jesterAccusing, jesterAccused),
                     _ => null
                 };
             }
         }
 
-        private Sprite GetMaskByState(Sprite idle, Sprite[] walk, Sprite[] dance)
+        private Sprite GetMaskByState(Sprite idle, Sprite[] walk, Sprite[] dance, Sprite[] accusing = null, Sprite[] accused = null)
         {
             return currentState switch
             {
                 CharacterAnimationState.Idle => idle,
                 CharacterAnimationState.Walking => GetFrameSprite(walk, idle),
                 CharacterAnimationState.Dancing => GetFrameSprite(dance, idle),
+                CharacterAnimationState.Accusing => GetFrameSprite(accusing, idle),
+                CharacterAnimationState.Accused => GetFrameSprite(accused, idle),
                 _ => idle
             };
         }
@@ -222,6 +266,8 @@ namespace MasqueradeMystery
                     CharacterAnimationState.Idle => bowtieIdle,
                     CharacterAnimationState.Walking => GetFrameSprite(bowtieWalk, bowtieIdle),
                     CharacterAnimationState.Dancing => GetFrameSprite(bowtieDance, bowtieIdle),
+                    CharacterAnimationState.Accusing => GetFrameSprite(bowtieAccusing, bowtieIdle),
+                    CharacterAnimationState.Accused => GetFrameSprite(bowtieAccused, bowtieIdle),
                     _ => bowtieIdle
                 };
             }
@@ -232,6 +278,8 @@ namespace MasqueradeMystery
                     CharacterAnimationState.Idle => hairbowIdle,
                     CharacterAnimationState.Walking => GetFrameSprite(hairbowWalk, hairbowIdle),
                     CharacterAnimationState.Dancing => GetFrameSprite(hairbowDance, hairbowIdle),
+                    CharacterAnimationState.Accusing => GetFrameSprite(hairbowAccusing, hairbowIdle),
+                    CharacterAnimationState.Accused => GetFrameSprite(hairbowAccused, hairbowIdle),
                     _ => hairbowIdle
                 };
             }

@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace MasqueradeMystery
@@ -68,6 +69,11 @@ namespace MasqueradeMystery
         // External control (for player)
         private bool externallyControlled;
 
+        // One-shot animation state
+        private bool isOneShotAnimation;
+        private bool animationComplete;
+        private Action onAnimationComplete;
+
         private void Awake()
         {
             visuals = GetComponent<CharacterVisuals>();
@@ -106,7 +112,7 @@ namespace MasqueradeMystery
                 if (!syncedToPartner)
                 {
                     // Leader (or solo) randomly picks starting direction
-                    bool startReversed = Random.value > 0.5f;
+                    bool startReversed = UnityEngine.Random.value > 0.5f;
                     if (startReversed)
                     {
                         currentFrame = FrameCount - 1;
@@ -174,6 +180,10 @@ namespace MasqueradeMystery
                     UpdateDanceMovement();
                     UpdateDanceSway();
                     break;
+                case CharacterAnimationState.Accusing:
+                case CharacterAnimationState.Accused:
+                    UpdateOneShotAnimation();
+                    break;
             }
         }
 
@@ -192,7 +202,7 @@ namespace MasqueradeMystery
             {
                 walkDecisionTimer = 0f;
 
-                if (Random.value < walkChance)
+                if (UnityEngine.Random.value < walkChance)
                 {
                     StartWalking();
                 }
@@ -229,7 +239,7 @@ namespace MasqueradeMystery
             for (int attempt = 0; attempt < maxWalkAttempts; attempt++)
             {
                 // Pick a random point within walkRadius of original position
-                Vector2 randomOffset = Random.insideUnitCircle * walkRadius;
+                Vector2 randomOffset = UnityEngine.Random.insideUnitCircle * walkRadius;
                 Vector3 targetPosition = originalPosition + new Vector3(randomOffset.x, randomOffset.y, 0);
 
                 // Clamp to scene bounds if available
@@ -314,7 +324,7 @@ namespace MasqueradeMystery
             currentFrame = 0;
 
             // Random flip when idle (same behavior as initial spawn)
-            visuals?.SetFlipped(Random.value > 0.5f);
+            visuals?.SetFlipped(UnityEngine.Random.value > 0.5f);
 
             UpdateVisuals();
         }
@@ -356,7 +366,7 @@ namespace MasqueradeMystery
                 {
                     danceMoveDecisionTimer = 0f;
 
-                    if (Random.value < danceMoveChance)
+                    if (UnityEngine.Random.value < danceMoveChance)
                     {
                         TryStartDanceMove();
                     }
@@ -419,7 +429,7 @@ namespace MasqueradeMystery
             for (int attempt = 0; attempt < maxWalkAttempts; attempt++)
             {
                 // Pick a random point within danceMoveRadius of original dance position
-                Vector2 randomOffset = Random.insideUnitCircle * danceMoveRadius;
+                Vector2 randomOffset = UnityEngine.Random.insideUnitCircle * danceMoveRadius;
                 Vector3 leaderTarget = danceOriginalPosition + new Vector3(randomOffset.x, randomOffset.y, 0);
                 Vector3 followerTarget = leaderTarget + currentPartnerOffset;
 
@@ -514,6 +524,75 @@ namespace MasqueradeMystery
         public void SetOriginalPosition(Vector3 position)
         {
             originalPosition = position;
+        }
+
+        /// <summary>
+        /// Plays an animation once and freezes on the last frame.
+        /// </summary>
+        public void PlayOneShotAnimation(CharacterAnimationState animState, Action onComplete = null)
+        {
+            state = animState;
+            currentFrame = 0;
+            frameTimer = 0f;
+            isOneShotAnimation = true;
+            animationComplete = false;
+            onAnimationComplete = onComplete;
+            UpdateVisuals();
+        }
+
+        /// <summary>
+        /// Freezes the animation on the current frame.
+        /// </summary>
+        public void FreezeAnimation()
+        {
+            isOneShotAnimation = false;
+            animationComplete = true;
+        }
+
+        /// <summary>
+        /// Stops all movement and dancing, sets character to idle.
+        /// </summary>
+        public void StopAllActivity()
+        {
+            isWalking = false;
+            isDanceMoving = false;
+            hasPartner = false;
+            isOneShotAnimation = false;
+            animationComplete = false;
+            onAnimationComplete = null;
+            state = CharacterAnimationState.Idle;
+            currentFrame = 0;
+            UpdateVisuals();
+        }
+
+        /// <summary>
+        /// Returns whether the current one-shot animation has completed.
+        /// </summary>
+        public bool IsAnimationComplete => animationComplete;
+
+        private void UpdateOneShotAnimation()
+        {
+            if (!isOneShotAnimation || animationComplete) return;
+
+            frameTimer += Time.deltaTime;
+
+            if (frameTimer >= frameTime)
+            {
+                frameTimer -= frameTime;
+                currentFrame++;
+
+                if (currentFrame >= FrameCount)
+                {
+                    // Freeze on last frame
+                    currentFrame = FrameCount - 1;
+                    animationComplete = true;
+                    isOneShotAnimation = false;
+                    onAnimationComplete?.Invoke();
+                    onAnimationComplete = null;
+                }
+
+                UpdateVisuals();
+            }
         }
     }
 }

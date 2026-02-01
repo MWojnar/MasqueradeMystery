@@ -4,6 +4,8 @@ namespace MasqueradeMystery
     {
         Idle,
         Walking,
-        Dancing
+        Dancing,
+        Accusing,
+        Accused
     }
 }

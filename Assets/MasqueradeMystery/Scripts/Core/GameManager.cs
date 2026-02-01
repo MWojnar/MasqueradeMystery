@@ -24,6 +24,10 @@ namespace MasqueradeMystery
         [Header("Debug")]
         [SerializeField] private bool showDebugInfo = true;
 
+        [Header("Accusation Animation")]
+        [SerializeField] private float accusationWalkSpeed = 3f;
+        [SerializeField] private float accusationStopDistance = 1.5f;
+
         public FMODUnity.EventReference MainMusic;
         public GameState CurrentState { get; private set; }
         public CharacterData TargetCharacter { get; private set; }
@@ -266,6 +270,12 @@ namespace MasqueradeMystery
                 yield return CameraController.Instance.PanToTarget(targetCharacterObject.transform.position);
             }
 
+            // Play accusation animation sequence on success
+            if (success && targetCharacterObject != null)
+            {
+                yield return StartCoroutine(AccusationSequence(targetCharacterObject));
+            }
+
             // Record round result
             if (RoundManager.Instance != null)
             {
@@ -282,6 +292,95 @@ namespace MasqueradeMystery
 
             // Set win/loss state for other UI components
             SetState(success ? GameState.Won : GameState.Lost);
+        }
+
+        private IEnumerator AccusationSequence(Character accused)
+        {
+            // Get references
+            Character player = spawner?.PlayerCharacter;
+            if (player == null) yield break;
+
+            CharacterAnimator accusedAnimator = accused.GetComponent<CharacterAnimator>();
+            CharacterAnimator playerAnimator = player.GetComponent<CharacterAnimator>();
+            CharacterVisuals accusedVisuals = accused.GetComponent<CharacterVisuals>();
+            CharacterVisuals playerVisuals = player.GetComponent<CharacterVisuals>();
+
+            if (accusedAnimator == null || playerAnimator == null) yield break;
+
+            // 1. Freeze accused character immediately
+            accusedAnimator.StopAllActivity();
+
+            // 2. If accused had a dance partner, stop partner too
+            if (accused.DancePartner != null)
+            {
+                CharacterAnimator partnerAnimator = accused.DancePartner.GetComponent<CharacterAnimator>();
+                if (partnerAnimator != null)
+                {
+                    partnerAnimator.StopAllActivity();
+                }
+            }
+
+            // 3. Calculate target position (left of accused, same Y)
+            Vector3 targetPosition = accused.transform.position;
+            targetPosition.x -= accusationStopDistance;
+
+            // Clamp to scene bounds
+            if (SceneBounds.Instance != null)
+            {
+                var bounds = SceneBounds.Instance.Bounds;
+                targetPosition.x = Mathf.Clamp(targetPosition.x, bounds.xMin, bounds.xMax);
+                targetPosition.y = Mathf.Clamp(targetPosition.y, bounds.yMin, bounds.yMax);
+            }
+
+            // 4. Walk player to position if not already there
+            float distanceToTarget = Vector3.Distance(player.transform.position, targetPosition);
+            if (distanceToTarget > 0.2f)
+            {
+                // Start walking animation
+                playerAnimator.SetExternalWalking(true);
+
+                // Face the direction we're walking
+                bool walkingRight = targetPosition.x > player.transform.position.x;
+                playerVisuals?.SetFlipped(!walkingRight);
+
+                // Move player toward target
+                while (Vector3.Distance(player.transform.position, targetPosition) > 0.1f)
+                {
+                    Vector3 direction = (targetPosition - player.transform.position).normalized;
+                    player.transform.position += direction * accusationWalkSpeed * Time.deltaTime;
+                    yield return null;
+                }
+
+                // Snap to final position
+                player.transform.position = targetPosition;
+            }
+
+            // Stop walking
+            playerAnimator.SetExternalWalking(false);
+
+            // 5. Face each other (player faces right, accused faces left)
+            playerVisuals?.SetFlipped(false); // Face right
+            accusedVisuals?.SetFlipped(true); // Face left
+
+            // 6. Play both animations simultaneously
+            bool playerAnimDone = false;
+            bool accusedAnimDone = false;
+
+            playerAnimator.PlayOneShotAnimation(CharacterAnimationState.Accusing, () => playerAnimDone = true);
+            accusedAnimator.PlayOneShotAnimation(CharacterAnimationState.Accused, () => accusedAnimDone = true);
+
+            // 7. Wait for both to complete with timeout
+            float timeout = 5f; // Max wait time
+            float elapsed = 0f;
+            while ((!playerAnimDone || !accusedAnimDone) && elapsed < timeout)
+            {
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
+
+            // 8. Ensure both are frozen on last frame
+            playerAnimator.FreezeAnimation();
+            accusedAnimator.FreezeAnimation();
         }
 
         // Called from RoundResultsUI when player presses continue

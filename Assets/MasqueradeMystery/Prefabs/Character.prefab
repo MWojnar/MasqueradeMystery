@@ -323,6 +323,22 @@ MonoBehaviour:
   - {fileID: 735506333582443454, guid: db5e11e051452064ab121f147802c850, type: 3}
   - {fileID: 6147663234515288720, guid: db5e11e051452064ab121f147802c850, type: 3}
   - {fileID: 4836459893816107961, guid: db5e11e051452064ab121f147802c850, type: 3}
+  suitAccusing:
+  - {fileID: -1415324660265876693, guid: f4e1005e6a95a6a428aa1cd6c174c203, type: 3}
+  - {fileID: 8016897965049809895, guid: f4e1005e6a95a6a428aa1cd6c174c203, type: 3}
+  - {fileID: 5083231716667098140, guid: f4e1005e6a95a6a428aa1cd6c174c203, type: 3}
+  dressAccusing:
+  - {fileID: 3845242567695747455, guid: f4e1005e6a95a6a428aa1cd6c174c203, type: 3}
+  - {fileID: 67357544537889739, guid: f4e1005e6a95a6a428aa1cd6c174c203, type: 3}
+  - {fileID: 2023648854028702085, guid: f4e1005e6a95a6a428aa1cd6c174c203, type: 3}
+  suitAccused:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  dressAccused:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
   bowtieIdle: {fileID: -3797140236300573179, guid: c71de07bc44637e458ce3bbe278fa520, type: 3}
   hairbowIdle: {fileID: 5922596897428330712, guid: c71de07bc44637e458ce3bbe278fa520, type: 3}
   bowtieWalk:
@@ -347,6 +363,22 @@ MonoBehaviour:
   - {fileID: 8600215604172294749, guid: db5e11e051452064ab121f147802c850, type: 3}
   - {fileID: -160542236750257726, guid: db5e11e051452064ab121f147802c850, type: 3}
   - {fileID: -1810342691050810189, guid: db5e11e051452064ab121f147802c850, type: 3}
+  bowtieAccusing:
+  - {fileID: 1382141673159666834, guid: f4e1005e6a95a6a428aa1cd6c174c203, type: 3}
+  - {fileID: 0}
+  - {fileID: 0}
+  hairbowAccusing:
+  - {fileID: -6364724126966956901, guid: f4e1005e6a95a6a428aa1cd6c174c203, type: 3}
+  - {fileID: -7115464613099973626, guid: f4e1005e6a95a6a428aa1cd6c174c203, type: 3}
+  - {fileID: 4302514123863042682, guid: f4e1005e6a95a6a428aa1cd6c174c203, type: 3}
+  bowtieAccused:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  hairbowAccused:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
   plainEyesIdle: {fileID: -1103086034171714959, guid: c71de07bc44637e458ce3bbe278fa520, type: 3}
   plainFullFaceIdle: {fileID: -1496167904473400739, guid: c71de07bc44637e458ce3bbe278fa520, type: 3}
   crownedIdle: {fileID: -1347944467025567232, guid: c71de07bc44637e458ce3bbe278fa520, type: 3}
@@ -395,6 +427,38 @@ MonoBehaviour:
   - {fileID: 5120247309386017921, guid: db5e11e051452064ab121f147802c850, type: 3}
   - {fileID: 8872273965335119596, guid: db5e11e051452064ab121f147802c850, type: 3}
   - {fileID: 5645370449966939315, guid: db5e11e051452064ab121f147802c850, type: 3}
+  plainEyesAccusing:
+  - {fileID: 2264052499782016771, guid: f4e1005e6a95a6a428aa1cd6c174c203, type: 3}
+  - {fileID: -2943008518600434144, guid: f4e1005e6a95a6a428aa1cd6c174c203, type: 3}
+  - {fileID: -960775661199829560, guid: f4e1005e6a95a6a428aa1cd6c174c203, type: 3}
+  plainFullFaceAccusing:
+  - {fileID: 7809901972348447976, guid: f4e1005e6a95a6a428aa1cd6c174c203, type: 3}
+  - {fileID: -4847608609015250258, guid: f4e1005e6a95a6a428aa1cd6c174c203, type: 3}
+  - {fileID: 3258312315308212701, guid: f4e1005e6a95a6a428aa1cd6c174c203, type: 3}
+  crownedAccusing:
+  - {fileID: 1974040882354010195, guid: f4e1005e6a95a6a428aa1cd6c174c203, type: 3}
+  - {fileID: 2995149409440187554, guid: f4e1005e6a95a6a428aa1cd6c174c203, type: 3}
+  - {fileID: -8511278405055290568, guid: f4e1005e6a95a6a428aa1cd6c174c203, type: 3}
+  jesterAccusing:
+  - {fileID: 7251578298198751059, guid: f4e1005e6a95a6a428aa1cd6c174c203, type: 3}
+  - {fileID: 7665218788311505994, guid: f4e1005e6a95a6a428aa1cd6c174c203, type: 3}
+  - {fileID: 2030420791021561811, guid: f4e1005e6a95a6a428aa1cd6c174c203, type: 3}
+  plainEyesAccused:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  plainFullFaceAccused:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  crownedAccused:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  jesterAccused:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
   foxIdle: {fileID: 4405474514931067254, guid: c71de07bc44637e458ce3bbe278fa520, type: 3}
   rabbitIdle: {fileID: 9000175636703215256, guid: c71de07bc44637e458ce3bbe278fa520, type: 3}
   sharkIdle: {fileID: 3346439723396537694, guid: c71de07bc44637e458ce3bbe278fa520, type: 3}
@@ -443,6 +507,38 @@ MonoBehaviour:
   - {fileID: 8858700615411165292, guid: db5e11e051452064ab121f147802c850, type: 3}
   - {fileID: 7433239076329990942, guid: db5e11e051452064ab121f147802c850, type: 3}
   - {fileID: 4870236174426677522, guid: db5e11e051452064ab121f147802c850, type: 3}
+  foxAccusing:
+  - {fileID: 1169081672100448802, guid: f4e1005e6a95a6a428aa1cd6c174c203, type: 3}
+  - {fileID: -177111772957432343, guid: f4e1005e6a95a6a428aa1cd6c174c203, type: 3}
+  - {fileID: -2655509978847331282, guid: f4e1005e6a95a6a428aa1cd6c174c203, type: 3}
+  rabbitAccusing:
+  - {fileID: -7173571691151626217, guid: f4e1005e6a95a6a428aa1cd6c174c203, type: 3}
+  - {fileID: -7542870740927069609, guid: f4e1005e6a95a6a428aa1cd6c174c203, type: 3}
+  - {fileID: -4482541332990884091, guid: f4e1005e6a95a6a428aa1cd6c174c203, type: 3}
+  sharkAccusing:
+  - {fileID: 6200306388628005695, guid: f4e1005e6a95a6a428aa1cd6c174c203, type: 3}
+  - {fileID: 3809216601782722944, guid: f4e1005e6a95a6a428aa1cd6c174c203, type: 3}
+  - {fileID: -2203489760758546401, guid: f4e1005e6a95a6a428aa1cd6c174c203, type: 3}
+  fishAccusing:
+  - {fileID: -102526772882508842, guid: f4e1005e6a95a6a428aa1cd6c174c203, type: 3}
+  - {fileID: 3865512412845680826, guid: f4e1005e6a95a6a428aa1cd6c174c203, type: 3}
+  - {fileID: -2534678522679792287, guid: f4e1005e6a95a6a428aa1cd6c174c203, type: 3}
+  foxAccused:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  rabbitAccused:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  sharkAccused:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  fishAccused:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
   outlineMaterial: {fileID: 2100000, guid: 659eaecb48c6443499563f8c02709f69, type: 2}
   outlineColor: {r: 1, g: 0.93495333, b: 0, a: 1}
   normalColor: {r: 1, g: 1, b: 1, a: 1}
