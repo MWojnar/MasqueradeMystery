@@ -401,6 +401,12 @@ namespace MasqueradeMystery
                     case 3: // Change dance state
                         if (character.IsDancing)
                         {
+                            // Check if this character's dance partner is the target - if so, skip to avoid breaking target's dance state
+                            if (character.DancePartnerId == TargetCharacter.CharacterId)
+                            {
+                                continue;
+                            }
+
                             // Break the dance pair
                             var charObj = characterObjects.Find(c => c.Data.CharacterId == character.CharacterId);
                             if (charObj != null)

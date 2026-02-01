@@ -453,6 +453,7 @@ GameObject:
   m_Component:
   - component: {fileID: 313564753}
   - component: {fileID: 313564754}
+  - component: {fileID: 313564755}
   m_Layer: 0
   m_Name: Background
   m_TagString: Untagged
@@ -534,6 +535,29 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!114 &313564755
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 313564752}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 98e83150a533b6649a5a314551d505d7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MasqueradeMystery::MasqueradeMystery.SceneBounds
+  backgroundSprite: {fileID: 313564754}
+  manualBounds:
+    serializedVersion: 2
+    x: -10
+    y: -5
+    width: 20
+    height: 10
+  marginTop: 5
+  marginBottom: 1
+  marginLeft: 1
+  marginRight: 1
 --- !u!1 &327437493
 GameObject:
   m_ObjectHideFlags: 0
@@ -4113,11 +4137,11 @@ MonoBehaviour:
   accusationZoomLevel: 2.5
   MainMusic:
     Guid:
-      Data1: -142096145
-      Data2: 1202132350
-      Data3: -700493407
-      Data4: 1501140753
-    Path: event:/main_music
+      Data1: 0
+      Data2: 0
+      Data3: 0
+      Data4: 0
+    Path: 
 --- !u!1 &1667014753
 GameObject:
   m_ObjectHideFlags: 0

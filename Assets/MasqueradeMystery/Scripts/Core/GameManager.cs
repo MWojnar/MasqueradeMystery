@@ -76,6 +76,13 @@ namespace MasqueradeMystery
 
             // Start at title screen
             SetState(GameState.Title);
+
+            // Start music immediately and loop for entire game
+            if (!MainMusic.IsNull && !musicInstance.isValid())
+            {
+                musicInstance = RuntimeManager.CreateInstance(MainMusic);
+                musicInstance.start();
+            }
         }
 
         private void OnDestroy()
@@ -128,12 +135,6 @@ namespace MasqueradeMystery
             // Reset camera zoom for new round
             CameraController.Instance?.ResetZoom();
 
-            if (!MainMusic.IsNull && !musicInstance.isValid())
-            {
-                musicInstance = RuntimeManager.CreateInstance(MainMusic);
-                musicInstance.start();
-            }
-
             WrongGuesses = 0;
 
             // Increment round
@@ -182,7 +183,7 @@ namespace MasqueradeMystery
                     UnityEngine.Debug.Log($"  - {hint.DisplayText}");
                 }
 
-                var allCharacterData = allCharacters.Select(c => c.Data).ToList();
+                var allCharacterData = allCharacters.Select(c => c.Data).Where(d => !d.IsPlayer).ToList();
                 int matchCount = HintEvaluator.CountMatchingCharacters(allCharacterData, CurrentHints);
                 UnityEngine.Debug.Log($"Characters matching all hints: {matchCount}");
             }
@@ -448,13 +449,6 @@ namespace MasqueradeMystery
 
         private void ReturnToTitle()
         {
-            // Stop music
-            if (musicInstance.isValid())
-            {
-                musicInstance.stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
-                musicInstance.release();
-            }
-
             // Reset camera zoom
             CameraController.Instance?.ResetZoom();
 
