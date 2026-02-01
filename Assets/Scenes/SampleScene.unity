@@ -3001,7 +3001,14 @@ MonoBehaviour:
       Data3: 0
       Data4: 0
     Path: 
-  WrongGuess:
+  WrongGuessSuit:
+    Guid:
+      Data1: 0
+      Data2: 0
+      Data3: 0
+      Data4: 0
+    Path: 
+  WrongGuessDress:
     Guid:
       Data1: 0
       Data2: 0
@@ -4137,11 +4144,11 @@ MonoBehaviour:
   accusationZoomLevel: 2.5
   MainMusic:
     Guid:
-      Data1: 0
-      Data2: 0
-      Data3: 0
-      Data4: 0
-    Path: 
+      Data1: 105617900
+      Data2: 1269839936
+      Data3: -579728995
+      Data4: -893728220
+    Path: event:/music_loop
 --- !u!1 &1667014753
 GameObject:
   m_ObjectHideFlags: 0

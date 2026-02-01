@@ -491,7 +491,7 @@ namespace MasqueradeMystery
                 {
                     UnityEngine.Debug.Log($"Wrong guess! ({WrongGuesses}/{maxWrongGuesses})");
                 }
-                GameEvents.OnWrongGuess?.Invoke();
+                GameEvents.OnWrongGuess?.Invoke(character);
 
                 if (WrongGuesses >= maxWrongGuesses)
                 {

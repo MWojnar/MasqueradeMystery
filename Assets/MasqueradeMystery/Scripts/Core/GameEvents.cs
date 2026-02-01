@@ -14,7 +14,7 @@ namespace MasqueradeMystery
         public static Action<GameState> OnGameStateChanged;
         public static Action<List<Hint>> OnHintsGenerated;
         public static Action OnTargetFound;
-        public static Action OnWrongGuess;
+        public static Action<Character> OnWrongGuess;
 
         // Timer events
         public static Action<float> OnTimerTick;

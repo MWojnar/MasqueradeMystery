@@ -12,7 +12,8 @@ namespace MasqueradeMystery
         [Header("Gameplay Sounds")]
         public EventReference VictoryJingle;
         public EventReference FailureJingle;
-        public EventReference WrongGuess;
+        public EventReference WrongGuessSuit;
+        public EventReference WrongGuessDress;
         public EventReference HintsAppearing;
         public EventReference ScoreTally;
         public EventReference AccusationSound;
@@ -72,9 +73,18 @@ namespace MasqueradeMystery
             PlayOneShot(VictoryJingle);
         }
 
-        private void OnWrongGuess()
+        private void OnWrongGuess(Character character)
         {
-            PlayOneShot(WrongGuess);
+            if (character?.Data == null) return;
+
+            if (character.Data.Clothing == ClothingType.Dress)
+            {
+                PlayOneShot(WrongGuessDress);
+            }
+            else
+            {
+                PlayOneShot(WrongGuessSuit);
+            }
         }
 
         private void OnHintsGenerated(List<Hint> hints)

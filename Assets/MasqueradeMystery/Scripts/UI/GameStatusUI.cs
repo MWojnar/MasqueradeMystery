@@ -59,7 +59,7 @@ namespace MasqueradeMystery
             }
         }
 
-        private void OnWrongGuess()
+        private void OnWrongGuess(Character character)
         {
             wrongGuesses++;
             UpdateDisplay();
