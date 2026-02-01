@@ -35,14 +35,16 @@ namespace MasqueradeMystery
                 panel.SetActive(false);
             }
 
-            GameEvents.OnCharacterHoverStart += ShowInfo;
-            GameEvents.OnCharacterHoverEnd += HideInfo;
+            // Debug UI disabled - character appearance is clear with pixel art
+            // GameEvents.OnCharacterHoverStart += ShowInfo;
+            // GameEvents.OnCharacterHoverEnd += HideInfo;
         }
 
         private void OnDestroy()
         {
-            GameEvents.OnCharacterHoverStart -= ShowInfo;
-            GameEvents.OnCharacterHoverEnd -= HideInfo;
+            // Debug UI disabled - character appearance is clear with pixel art
+            // GameEvents.OnCharacterHoverStart -= ShowInfo;
+            // GameEvents.OnCharacterHoverEnd -= HideInfo;
         }
 
         private void ShowInfo(Character character)

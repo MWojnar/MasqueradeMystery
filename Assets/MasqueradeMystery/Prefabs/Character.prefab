@@ -471,13 +471,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: MasqueradeMystery::MasqueradeMystery.CharacterAnimator
   frameTime: 0.3
-  walkChance: 0.1
+  walkChance: 0.2
   walkRadius: 2
   walkSpeed: 2
   minDistanceFromOthers: 1.5
   maxWalkAttempts: 10
   swayAmount: 0.15
-  danceMoveChance: 0.05
+  danceMoveChance: 0.1
   danceMoveSpeed: 0.5
   danceMoveRadius: 3
 --- !u!1 &6344295248856093781
