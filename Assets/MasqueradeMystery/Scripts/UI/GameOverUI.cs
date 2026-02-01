@@ -54,15 +54,11 @@ namespace MasqueradeMystery
 
         private void OnGameStateChanged(GameState state)
         {
-            if (state == GameState.Won)
-            {
-                ShowWin();
-            }
-            else if (state == GameState.Lost)
-            {
-                ShowLose();
-            }
-            else if (state == GameState.Playing || state == GameState.Menu)
+            // GameOverUI is now disabled - RoundResultsUI handles all end-of-round display
+            // Keep hidden for all states
+            if (state == GameState.Playing || state == GameState.Title ||
+                state == GameState.Transitioning || state == GameState.RoundEnding ||
+                state == GameState.Won || state == GameState.Lost)
             {
                 Hide();
             }

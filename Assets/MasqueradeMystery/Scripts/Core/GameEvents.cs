@@ -16,6 +16,14 @@ namespace MasqueradeMystery
         public static Action OnTargetFound;
         public static Action OnWrongGuess;
 
+        // Timer events
+        public static Action<float> OnTimerTick;
+        public static Action OnTimerExpired;
+
+        // Round events
+        public static Action<int> OnRoundStarted;
+        public static Action<bool, int> OnRoundEnded; // success, guesses used
+
         // Clear all listeners (useful for cleanup)
         public static void ClearAll()
         {
@@ -26,6 +34,10 @@ namespace MasqueradeMystery
             OnHintsGenerated = null;
             OnTargetFound = null;
             OnWrongGuess = null;
+            OnTimerTick = null;
+            OnTimerExpired = null;
+            OnRoundStarted = null;
+            OnRoundEnded = null;
         }
     }
 }

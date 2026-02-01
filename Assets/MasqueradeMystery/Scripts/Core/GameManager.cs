@@ -1,5 +1,6 @@
 using FMOD.Studio;
 using FMODUnity;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -14,11 +15,11 @@ namespace MasqueradeMystery
         [SerializeField] private CharacterSpawner spawner;
         [SerializeField] private GameStatusUI gameStatusUI;
         [SerializeField] private GameOverUI gameOverUI;
+        [SerializeField] private RoundResultsUI roundResultsUI;
 
         [Header("Game Settings")]
-        [SerializeField] private int hintCount = 4;
+        [SerializeField] private int hintCount = 3;
         [SerializeField] private int maxWrongGuesses = 3;
-        [SerializeField] private bool autoStartOnAwake = true;
 
         [Header("Debug")]
         [SerializeField] private bool showDebugInfo = true;
@@ -30,7 +31,8 @@ namespace MasqueradeMystery
         public int WrongGuesses { get; private set; }
 
         private List<Character> allCharacters;
-		private EventInstance musicInstance;
+        private EventInstance musicInstance;
+        private Character targetCharacterObject;
 
 		private void Awake()
         {
@@ -47,11 +49,12 @@ namespace MasqueradeMystery
         {
             // Subscribe to events
             GameEvents.OnCharacterClicked += HandleCharacterClicked;
+            GameEvents.OnTimerExpired += HandleTimerExpired;
 
             // Connect game over UI
             if (gameOverUI != null)
             {
-                gameOverUI.OnRestartRequested += StartNewGame;
+                gameOverUI.OnRestartRequested += ReturnToTitle;
                 gameOverUI.OnQuitRequested += QuitGame;
             }
 
@@ -61,19 +64,18 @@ namespace MasqueradeMystery
                 gameStatusUI.Initialize(maxWrongGuesses);
             }
 
-            if (autoStartOnAwake)
-            {
-                StartNewGame();
-            }
+            // Start at title screen
+            SetState(GameState.Title);
         }
 
         private void OnDestroy()
         {
             GameEvents.OnCharacterClicked -= HandleCharacterClicked;
+            GameEvents.OnTimerExpired -= HandleTimerExpired;
 
             if (gameOverUI != null)
             {
-                gameOverUI.OnRestartRequested -= StartNewGame;
+                gameOverUI.OnRestartRequested -= ReturnToTitle;
                 gameOverUI.OnQuitRequested -= QuitGame;
             }
 
@@ -83,17 +85,54 @@ namespace MasqueradeMystery
             }
         }
 
-        public void StartNewGame()
+        // Called from title screen to start a new game session
+        public void StartGameFromTitle()
         {
-            if (!MainMusic.IsNull)
+            if (RoundManager.Instance != null)
+            {
+                RoundManager.Instance.StartNewSession();
+            }
+
+            // Transition to gameplay
+            if (TransitionController.Instance != null)
+            {
+                TransitionController.Instance.TransitionWithCallback(
+                    () => StartNewRound(),
+                    () => {
+                        SetState(GameState.Playing);
+                        StartTimer();
+                    }
+                );
+                SetState(GameState.Transitioning);
+            }
+            else
+            {
+                StartNewRound();
+                SetState(GameState.Playing);
+                StartTimer();
+            }
+        }
+
+        private void StartNewRound()
+        {
+            if (!MainMusic.IsNull && !musicInstance.isValid())
             {
                 musicInstance = RuntimeManager.CreateInstance(MainMusic);
                 musicInstance.start();
             }
 
-			WrongGuesses = 0;
+            WrongGuesses = 0;
 
-            // Clear and spawn characters
+            // Increment round
+            if (RoundManager.Instance != null)
+            {
+                RoundManager.Instance.StartRound();
+            }
+
+            // Clear existing characters
+            ClearCharacters();
+
+            // Spawn new characters
             if (spawner != null)
             {
                 allCharacters = spawner.SpawnCharacters();
@@ -110,19 +149,19 @@ namespace MasqueradeMystery
                 return;
             }
 
-            // Select random target
-            Character targetChar = allCharacters[Random.Range(0, allCharacters.Count)];
-            TargetCharacter = targetChar.Data;
+            // Generate hints first, then find/create a unique matching target
+            HintGenerator hintGen = new HintGenerator(allCharacters);
+            TargetCharacter = hintGen.GenerateHintsAndFindTarget(hintCount);
+            CurrentHints = hintGen.GeneratedHints;
 
-            // Generate hints
-            var allCharacterData = allCharacters.Select(c => c.Data).ToList();
-            HintGenerator hintGen = new HintGenerator(TargetCharacter, allCharacterData);
-            CurrentHints = hintGen.GenerateHints(hintCount);
+            // Find the target character object
+            targetCharacterObject = allCharacters.Find(c => c.Data.CharacterId == TargetCharacter.CharacterId);
 
             // Debug output
             if (showDebugInfo)
             {
-                Debug.Log($"=== NEW GAME ===");
+                int round = RoundManager.Instance != null ? RoundManager.Instance.CurrentRound : 1;
+                Debug.Log($"=== ROUND {round} ===");
                 Debug.Log($"Target: {TargetCharacter}");
                 Debug.Log($"Hints:");
                 foreach (var hint in CurrentHints)
@@ -130,7 +169,7 @@ namespace MasqueradeMystery
                     Debug.Log($"  - {hint.DisplayText}");
                 }
 
-                // Show how many characters match all hints
+                var allCharacterData = allCharacters.Select(c => c.Data).ToList();
                 int matchCount = HintEvaluator.CountMatchingCharacters(allCharacterData, CurrentHints);
                 Debug.Log($"Characters matching all hints: {matchCount}");
             }
@@ -144,7 +183,155 @@ namespace MasqueradeMystery
                 gameStatusUI.Initialize(maxWrongGuesses);
             }
 
-            SetState(GameState.Playing);
+            // Enable camera input
+            if (CameraController.Instance != null)
+            {
+                CameraController.Instance.EnableInput();
+            }
+        }
+
+        private void StartTimer()
+        {
+            if (TimerManager.Instance != null && RoundManager.Instance != null)
+            {
+                float time = RoundManager.Instance.GetCurrentRoundTime();
+                TimerManager.Instance.StartTimer(time);
+
+                if (showDebugInfo)
+                {
+                    Debug.Log($"Timer started: {time} seconds");
+                }
+            }
+        }
+
+        private void ClearCharacters()
+        {
+            if (allCharacters != null)
+            {
+                foreach (var character in allCharacters)
+                {
+                    if (character != null)
+                    {
+                        Destroy(character.gameObject);
+                    }
+                }
+                allCharacters.Clear();
+            }
+            targetCharacterObject = null;
+        }
+
+        private void HandleTimerExpired()
+        {
+            if (CurrentState != GameState.Playing) return;
+
+            if (showDebugInfo)
+            {
+                Debug.Log("Time's up! Round failed.");
+            }
+
+            EndRound(false);
+        }
+
+        // Called when round ends (win or loss)
+        private void EndRound(bool success)
+        {
+            // Stop timer
+            if (TimerManager.Instance != null)
+            {
+                TimerManager.Instance.StopTimer();
+            }
+
+            // Disable camera input
+            if (CameraController.Instance != null)
+            {
+                CameraController.Instance.DisableInput();
+            }
+
+            SetState(GameState.RoundEnding);
+
+            // Start the round end sequence
+            StartCoroutine(RoundEndSequence(success));
+        }
+
+        private IEnumerator RoundEndSequence(bool success)
+        {
+            // Pan camera to target
+            if (CameraController.Instance != null && targetCharacterObject != null)
+            {
+                yield return CameraController.Instance.PanToTarget(targetCharacterObject.transform.position);
+            }
+
+            // Record round result
+            if (RoundManager.Instance != null)
+            {
+                RoundManager.Instance.EndRound(success, WrongGuesses);
+            }
+
+            // Show results UI
+            if (roundResultsUI != null)
+            {
+                int round = RoundManager.Instance != null ? RoundManager.Instance.CurrentRound : 1;
+                int consecutiveWins = RoundManager.Instance != null ? RoundManager.Instance.ConsecutiveWins : 0;
+                roundResultsUI.ShowResults(success, round, WrongGuesses, maxWrongGuesses, TargetCharacter, consecutiveWins);
+            }
+
+            // Set win/loss state for other UI components
+            SetState(success ? GameState.Won : GameState.Lost);
+        }
+
+        // Called from RoundResultsUI when player presses continue
+        public void ContinueFromRoundEnd(bool wasSuccess)
+        {
+            if (wasSuccess)
+            {
+                // Continue to next round
+                if (TransitionController.Instance != null)
+                {
+                    TransitionController.Instance.TransitionWithCallback(
+                        () => StartNewRound(),
+                        () => {
+                            SetState(GameState.Playing);
+                            StartTimer();
+                        }
+                    );
+                    SetState(GameState.Transitioning);
+                }
+                else
+                {
+                    StartNewRound();
+                    SetState(GameState.Playing);
+                    StartTimer();
+                }
+            }
+            else
+            {
+                // Return to title
+                ReturnToTitle();
+            }
+        }
+
+        private void ReturnToTitle()
+        {
+            // Stop music
+            if (musicInstance.isValid())
+            {
+                musicInstance.stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
+                musicInstance.release();
+            }
+
+            if (TransitionController.Instance != null)
+            {
+                TransitionController.Instance.TransitionWithCallback(
+                    () => ClearCharacters(),
+                    () => SetState(GameState.Title)
+                );
+                SetState(GameState.Transitioning);
+            }
+            else
+            {
+                ClearCharacters();
+                SetState(GameState.Title);
+            }
         }
 
         private void HandleCharacterClicked(Character character)
@@ -160,7 +347,7 @@ namespace MasqueradeMystery
                     Debug.Log("Correct! Target found!");
                 }
                 GameEvents.OnTargetFound?.Invoke();
-                SetState(GameState.Won);
+                EndRound(true);
             }
             else
             {
@@ -178,7 +365,7 @@ namespace MasqueradeMystery
                     {
                         Debug.Log("Game Over - Too many wrong guesses!");
                     }
-                    SetState(GameState.Lost);
+                    EndRound(false);
                 }
             }
         }

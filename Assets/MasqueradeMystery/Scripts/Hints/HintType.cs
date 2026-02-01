@@ -2,41 +2,23 @@ namespace MasqueradeMystery
 {
     public enum HintType
     {
-        // Mask category hints
-        MaskIsAnimal,
-        MaskIsNonAnimal,
-
-        // Animal mask specific categories
+        // Animal mask categories (overlapping)
         MaskIsMammal,
         MaskIsPredator,
         MaskIsAquatic,
         MaskIsPrey,
 
-        // Non-animal mask specific traits
+        // Human mask traits (overlapping)
         MaskHasHat,
         MaskHasMouth,
-        MaskHasNoHat,
-        MaskHasNoMouth,
-
-        // Exact mask types (more specific hints)
-        MaskIsFox,
-        MaskIsRabbit,
-        MaskIsShark,
-        MaskIsFish,
-        MaskIsPlainEyes,
-        MaskIsPlainFullFace,
-        MaskIsCrowned,
-        MaskIsJester,
 
         // Clothing hints
         WearsSuit,
         WearsDress,
 
-        // Accessory hints
-        HasBowtie,
-        HasHairbow,
+        // Accessory hints (general only)
+        HasAccessory,
         HasNoAccessory,
-        HasSomeAccessory,
 
         // Dancing hints
         IsNotDancing,

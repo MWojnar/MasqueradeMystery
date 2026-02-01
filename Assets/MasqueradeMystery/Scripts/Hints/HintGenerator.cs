@@ -6,136 +6,438 @@ namespace MasqueradeMystery
 {
     public class HintGenerator
     {
-        private CharacterData target;
         private List<CharacterData> allCharacters;
+        private List<Character> characterObjects;
 
-        public HintGenerator(CharacterData target, List<CharacterData> allCharacters)
+        // Result of generation
+        public List<Hint> GeneratedHints { get; private set; }
+        public CharacterData TargetCharacter { get; private set; }
+
+        public HintGenerator(List<Character> characters)
         {
-            this.target = target;
-            this.allCharacters = allCharacters;
+            characterObjects = characters;
+            allCharacters = characters.Select(c => c.Data).ToList();
         }
 
-        public List<Hint> GenerateHints(int count)
+        /// <summary>
+        /// Generates hints first, then finds or creates exactly one matching character.
+        /// Returns the target character.
+        /// </summary>
+        public CharacterData GenerateHintsAndFindTarget(int hintCount)
         {
-            List<Hint> allPossibleHints = GetAllTrueHintsForTarget();
-            List<Hint> selectedHints = new List<Hint>();
+            // Step 1: Generate random non-contradictory hints
+            GeneratedHints = GenerateRandomHints(hintCount);
 
-            // Shuffle hints to add variety
-            ShuffleList(allPossibleHints);
+            // Step 2: Find all characters matching these hints
+            var matchingCharacters = HintEvaluator.GetMatchingCharacters(allCharacters, GeneratedHints);
 
-            // Sort hints by how much they narrow down possibilities (fewer matches = more useful)
-            // Add small random factor to avoid always picking the same hints
-            allPossibleHints = allPossibleHints
-                .OrderBy(h => HintEvaluator.CountMatchingCharacters(allCharacters, h) + Random.Range(-2f, 2f))
-                .ToList();
-
-            foreach (var hint in allPossibleHints)
+            if (matchingCharacters.Count == 0)
             {
-                if (selectedHints.Count >= count) break;
+                // No one matches - create a character that matches and replace a random one
+                TargetCharacter = CreateMatchingCharacter();
+                ReplaceRandomCharacter(TargetCharacter);
+            }
+            else if (matchingCharacters.Count == 1)
+            {
+                // Exactly one matches - perfect!
+                TargetCharacter = matchingCharacters[0];
+            }
+            else
+            {
+                // Multiple match - pick one as target, randomize the others
+                TargetCharacter = matchingCharacters[Random.Range(0, matchingCharacters.Count)];
 
-                // Check how many characters remain after adding this hint
-                var testHints = new List<Hint>(selectedHints) { hint };
-                int remaining = HintEvaluator.CountMatchingCharacters(allCharacters, testHints);
-
-                // Only add hints that still leave at least 1 match (the target)
-                // and provide meaningful filtering (reduce the pool)
-                if (remaining >= 1)
+                foreach (var character in matchingCharacters)
                 {
-                    int previousRemaining = selectedHints.Count > 0
-                        ? HintEvaluator.CountMatchingCharacters(allCharacters, selectedHints)
-                        : allCharacters.Count;
-
-                    // Only add if it actually filters some characters
-                    if (remaining < previousRemaining || selectedHints.Count == 0)
+                    if (character != TargetCharacter)
                     {
-                        selectedHints.Add(hint);
+                        RandomizeUntilNoMatch(character);
                     }
                 }
             }
 
-            // If we couldn't get enough useful hints, fill with any true hints
-            foreach (var hint in allPossibleHints)
-            {
-                if (selectedHints.Count >= count) break;
-                if (!selectedHints.Contains(hint))
-                {
-                    selectedHints.Add(hint);
-                }
-            }
-
-            return selectedHints;
+            return TargetCharacter;
         }
 
-        private List<Hint> GetAllTrueHintsForTarget()
+        private List<Hint> GenerateRandomHints(int count)
         {
             List<Hint> hints = new List<Hint>();
 
-            // Mask category hints
-            hints.Add(new Hint(target.Mask.IsAnimalMask ? HintType.MaskIsAnimal : HintType.MaskIsNonAnimal));
-
-            // Animal-specific category hints
-            if (target.Mask.IsAnimalMask)
+            // Category 1: Mask subcategory (animal or human traits)
+            bool isAnimalMask = Random.value > 0.5f;
+            if (isAnimalMask)
             {
-                if (target.Mask.IsMammal) hints.Add(new Hint(HintType.MaskIsMammal));
-                if (target.Mask.IsPredator) hints.Add(new Hint(HintType.MaskIsPredator));
-                if (target.Mask.IsAquatic) hints.Add(new Hint(HintType.MaskIsAquatic));
-                if (target.Mask.IsPrey) hints.Add(new Hint(HintType.MaskIsPrey));
-
-                // Exact animal mask
-                switch (target.Mask.AnimalMask)
-                {
-                    case AnimalMaskType.Fox: hints.Add(new Hint(HintType.MaskIsFox)); break;
-                    case AnimalMaskType.Rabbit: hints.Add(new Hint(HintType.MaskIsRabbit)); break;
-                    case AnimalMaskType.Shark: hints.Add(new Hint(HintType.MaskIsShark)); break;
-                    case AnimalMaskType.Fish: hints.Add(new Hint(HintType.MaskIsFish)); break;
-                }
+                // Pick one animal trait
+                HintType[] animalTraits = { HintType.MaskIsMammal, HintType.MaskIsPredator, HintType.MaskIsAquatic, HintType.MaskIsPrey };
+                hints.Add(new Hint(animalTraits[Random.Range(0, animalTraits.Length)]));
             }
             else
             {
-                // Non-animal mask traits
-                if (target.Mask.HasHat)
-                    hints.Add(new Hint(HintType.MaskHasHat));
-                else
-                    hints.Add(new Hint(HintType.MaskHasNoHat));
+                // Pick one or two human mask traits
+                bool hasHat = Random.value > 0.5f;
+                bool hasMouth = Random.value > 0.5f;
 
-                if (target.Mask.HasMouth)
-                    hints.Add(new Hint(HintType.MaskHasMouth));
-                else
-                    hints.Add(new Hint(HintType.MaskHasNoMouth));
-
-                // Exact non-animal mask
-                switch (target.Mask.NonAnimalMask)
+                // Must pick at least one
+                if (!hasHat && !hasMouth)
                 {
-                    case NonAnimalMaskType.PlainEyes: hints.Add(new Hint(HintType.MaskIsPlainEyes)); break;
-                    case NonAnimalMaskType.PlainFullFace: hints.Add(new Hint(HintType.MaskIsPlainFullFace)); break;
-                    case NonAnimalMaskType.Crowned: hints.Add(new Hint(HintType.MaskIsCrowned)); break;
-                    case NonAnimalMaskType.Jester: hints.Add(new Hint(HintType.MaskIsJester)); break;
+                    if (Random.value > 0.5f) hasHat = true;
+                    else hasMouth = true;
+                }
+
+                if (hasHat) hints.Add(new Hint(HintType.MaskHasHat));
+                if (hasMouth) hints.Add(new Hint(HintType.MaskHasMouth));
+            }
+
+            // Category 2: Clothing
+            bool wearsSuit = Random.value > 0.5f;
+            hints.Add(new Hint(wearsSuit ? HintType.WearsSuit : HintType.WearsDress));
+
+            // Category 3: Accessory
+            bool hasAccessory = Random.value > 0.5f;
+            hints.Add(new Hint(hasAccessory ? HintType.HasAccessory : HintType.HasNoAccessory));
+
+            // Category 4: Dancing (optional, only add if we need more hints)
+            if (hints.Count < count)
+            {
+                // Pick a dance state
+                float danceRoll = Random.value;
+                if (danceRoll < 0.4f)
+                {
+                    hints.Add(new Hint(HintType.IsNotDancing));
+                }
+                else if (danceRoll < 0.7f)
+                {
+                    hints.Add(new Hint(HintType.IsDancing));
+                }
+                else
+                {
+                    // Dancing with specific partner type
+                    hints.Add(new Hint(Random.value > 0.5f ? HintType.DancingWithSuitPartner : HintType.DancingWithDressPartner));
                 }
             }
 
-            // Clothing hints
-            hints.Add(new Hint(target.Clothing == ClothingType.Suit ? HintType.WearsSuit : HintType.WearsDress));
-
-            // Accessory hints
-            if (target.HasBowtie)
-                hints.Add(new Hint(HintType.HasBowtie));
-            else if (target.HasHairbow)
-                hints.Add(new Hint(HintType.HasHairbow));
-            else
-                hints.Add(new Hint(HintType.HasNoAccessory));
-
-            if (target.HasAnyAccessory)
-                hints.Add(new Hint(HintType.HasSomeAccessory));
-
-            // Dance hints
-            hints.Add(new Hint(target.IsDancing ? HintType.IsDancing : HintType.IsNotDancing));
-
-            if (target.DanceState == DanceState.DancingWithSuitPartner)
-                hints.Add(new Hint(HintType.DancingWithSuitPartner));
-            else if (target.DanceState == DanceState.DancingWithDressPartner)
-                hints.Add(new Hint(HintType.DancingWithDressPartner));
+            // Trim to count if we have too many
+            while (hints.Count > count)
+            {
+                // Remove a random hint (but preserve order for remaining hints)
+                hints.RemoveAt(Random.Range(0, hints.Count));
+            }
 
             return hints;
+        }
+
+        private CharacterData CreateMatchingCharacter()
+        {
+            CharacterData data = new CharacterData { CharacterId = -1 }; // Will be assigned proper ID when replacing
+
+            // Set attributes based on hints
+            foreach (var hint in GeneratedHints)
+            {
+                ApplyHintToCharacter(data, hint);
+            }
+
+            // Fill in any unset attributes randomly
+            FinalizeCharacterData(data);
+
+            return data;
+        }
+
+        private void ApplyHintToCharacter(CharacterData data, Hint hint)
+        {
+            // Since MaskIdentifier is a struct, we need to get, modify, and reassign it
+            switch (hint.Type)
+            {
+                case HintType.MaskIsMammal:
+                    {
+                        var mask = data.Mask;
+                        mask.IsAnimalMask = true;
+                        mask.AnimalMask = Random.value > 0.5f ? AnimalMaskType.Fox : AnimalMaskType.Rabbit;
+                        data.Mask = mask;
+                    }
+                    break;
+                case HintType.MaskIsPredator:
+                    {
+                        var mask = data.Mask;
+                        mask.IsAnimalMask = true;
+                        mask.AnimalMask = Random.value > 0.5f ? AnimalMaskType.Fox : AnimalMaskType.Shark;
+                        data.Mask = mask;
+                    }
+                    break;
+                case HintType.MaskIsAquatic:
+                    {
+                        var mask = data.Mask;
+                        mask.IsAnimalMask = true;
+                        mask.AnimalMask = Random.value > 0.5f ? AnimalMaskType.Shark : AnimalMaskType.Fish;
+                        data.Mask = mask;
+                    }
+                    break;
+                case HintType.MaskIsPrey:
+                    {
+                        var mask = data.Mask;
+                        mask.IsAnimalMask = true;
+                        mask.AnimalMask = Random.value > 0.5f ? AnimalMaskType.Rabbit : AnimalMaskType.Fish;
+                        data.Mask = mask;
+                    }
+                    break;
+
+                case HintType.MaskHasHat:
+                    {
+                        var mask = data.Mask;
+                        mask.IsAnimalMask = false;
+                        // If already has mouth requirement, must be Jester (has both)
+                        if (mask.NonAnimalMask == NonAnimalMaskType.PlainFullFace ||
+                            mask.NonAnimalMask == NonAnimalMaskType.Jester)
+                        {
+                            mask.NonAnimalMask = NonAnimalMaskType.Jester;
+                        }
+                        else
+                        {
+                            // Crowned or Jester have hats
+                            mask.NonAnimalMask = Random.value > 0.5f ? NonAnimalMaskType.Crowned : NonAnimalMaskType.Jester;
+                        }
+                        data.Mask = mask;
+                    }
+                    break;
+                case HintType.MaskHasMouth:
+                    {
+                        var mask = data.Mask;
+                        mask.IsAnimalMask = false;
+                        // If already has hat requirement, must be Jester (has both)
+                        if (mask.NonAnimalMask == NonAnimalMaskType.Crowned ||
+                            mask.NonAnimalMask == NonAnimalMaskType.Jester)
+                        {
+                            mask.NonAnimalMask = NonAnimalMaskType.Jester;
+                        }
+                        else
+                        {
+                            // PlainFullFace or Jester have mouths
+                            mask.NonAnimalMask = Random.value > 0.5f ? NonAnimalMaskType.PlainFullFace : NonAnimalMaskType.Jester;
+                        }
+                        data.Mask = mask;
+                    }
+                    break;
+
+                case HintType.WearsSuit:
+                    data.Clothing = ClothingType.Suit;
+                    break;
+                case HintType.WearsDress:
+                    data.Clothing = ClothingType.Dress;
+                    break;
+
+                case HintType.HasAccessory:
+                    data.Accessories = data.Clothing == ClothingType.Suit ? Accessories.Bowtie : Accessories.Hairbow;
+                    break;
+                case HintType.HasNoAccessory:
+                    data.Accessories = Accessories.None;
+                    break;
+
+                case HintType.IsNotDancing:
+                    data.DanceState = DanceState.NotDancing;
+                    data.DancePartnerId = -1;
+                    break;
+                case HintType.IsDancing:
+                    // Will need to set up dancing later
+                    if (data.DanceState == DanceState.NotDancing)
+                    {
+                        data.DanceState = Random.value > 0.5f ? DanceState.DancingWithSuitPartner : DanceState.DancingWithDressPartner;
+                    }
+                    break;
+                case HintType.DancingWithSuitPartner:
+                    data.DanceState = DanceState.DancingWithSuitPartner;
+                    break;
+                case HintType.DancingWithDressPartner:
+                    data.DanceState = DanceState.DancingWithDressPartner;
+                    break;
+            }
+        }
+
+        private void FinalizeCharacterData(CharacterData data)
+        {
+            // Ensure mask is set (must reassign struct)
+            var mask = data.Mask;
+            bool maskModified = false;
+
+            if (mask.IsAnimalMask && mask.AnimalMask == AnimalMaskType.None)
+            {
+                mask.AnimalMask = (AnimalMaskType)Random.Range(1, 5);
+                maskModified = true;
+            }
+            else if (!mask.IsAnimalMask && mask.NonAnimalMask == NonAnimalMaskType.None)
+            {
+                mask.NonAnimalMask = (NonAnimalMaskType)Random.Range(1, 5);
+                maskModified = true;
+            }
+
+            if (maskModified)
+            {
+                data.Mask = mask;
+            }
+
+            // Accessory - ensure it matches clothing type
+            if (data.HasAnyAccessory)
+            {
+                data.Accessories = data.Clothing == ClothingType.Suit ? Accessories.Bowtie : Accessories.Hairbow;
+            }
+        }
+
+        private void ReplaceRandomCharacter(CharacterData newData)
+        {
+            // Pick a random non-dancing character to replace (simpler than handling dance pairs)
+            var nonDancingCharacters = characterObjects.Where(c => !c.Data.IsDancing).ToList();
+
+            Character toReplace;
+            if (nonDancingCharacters.Count > 0)
+            {
+                toReplace = nonDancingCharacters[Random.Range(0, nonDancingCharacters.Count)];
+            }
+            else
+            {
+                // Fallback: pick any character and break their dance pair
+                toReplace = characterObjects[Random.Range(0, characterObjects.Count)];
+                if (toReplace.Data.IsDancing)
+                {
+                    BreakDancePair(toReplace);
+                }
+            }
+
+            // Copy position and ID
+            newData.CharacterId = toReplace.Data.CharacterId;
+            newData.Position = toReplace.Data.Position;
+
+            // Handle dance state - if new character needs to dance but replaced one didn't
+            if (newData.IsDancing && !toReplace.Data.IsDancing)
+            {
+                // Can't easily set up dancing, so force to not dancing
+                newData.DanceState = DanceState.NotDancing;
+                newData.DancePartnerId = -1;
+            }
+
+            // Update the character object
+            toReplace.UpdateData(newData);
+
+            // Update our reference
+            int index = allCharacters.FindIndex(c => c.CharacterId == newData.CharacterId);
+            if (index >= 0)
+            {
+                allCharacters[index] = newData;
+            }
+        }
+
+        private void RandomizeUntilNoMatch(CharacterData character)
+        {
+            int maxAttempts = 50;
+            int attempts = 0;
+
+            while (HintEvaluator.DoesCharacterMatchAllHints(character, GeneratedHints) && attempts < maxAttempts)
+            {
+                // Randomly change one attribute to break the match
+                int attributeToChange = Random.Range(0, 4);
+
+                switch (attributeToChange)
+                {
+                    case 0: // Change mask (must reassign struct)
+                        {
+                            var mask = character.Mask;
+                            if (mask.IsAnimalMask)
+                            {
+                                // Change to different animal or to human
+                                if (Random.value > 0.3f)
+                                {
+                                    mask.AnimalMask = (AnimalMaskType)Random.Range(1, 5);
+                                }
+                                else
+                                {
+                                    mask.IsAnimalMask = false;
+                                    mask.NonAnimalMask = (NonAnimalMaskType)Random.Range(1, 5);
+                                }
+                            }
+                            else
+                            {
+                                // Change to different human mask or to animal
+                                if (Random.value > 0.3f)
+                                {
+                                    mask.NonAnimalMask = (NonAnimalMaskType)Random.Range(1, 5);
+                                }
+                                else
+                                {
+                                    mask.IsAnimalMask = true;
+                                    mask.AnimalMask = (AnimalMaskType)Random.Range(1, 5);
+                                }
+                            }
+                            character.Mask = mask;
+                        }
+                        break;
+
+                    case 1: // Change clothing
+                        character.Clothing = character.Clothing == ClothingType.Suit ? ClothingType.Dress : ClothingType.Suit;
+                        // Update accessory to match
+                        if (character.HasAnyAccessory)
+                        {
+                            character.Accessories = character.Clothing == ClothingType.Suit ? Accessories.Bowtie : Accessories.Hairbow;
+                        }
+                        break;
+
+                    case 2: // Change accessory
+                        if (character.HasAnyAccessory)
+                        {
+                            character.Accessories = Accessories.None;
+                        }
+                        else
+                        {
+                            character.Accessories = character.Clothing == ClothingType.Suit ? Accessories.Bowtie : Accessories.Hairbow;
+                        }
+                        break;
+
+                    case 3: // Change dance state
+                        if (character.IsDancing)
+                        {
+                            // Break the dance pair
+                            var charObj = characterObjects.Find(c => c.Data.CharacterId == character.CharacterId);
+                            if (charObj != null)
+                            {
+                                BreakDancePair(charObj);
+                            }
+                            character.DanceState = DanceState.NotDancing;
+                            character.DancePartnerId = -1;
+                        }
+                        else
+                        {
+                            // Can't easily make them dance, try another attribute
+                            continue;
+                        }
+                        break;
+                }
+
+                attempts++;
+            }
+
+            // Update the visual
+            var charObject = characterObjects.Find(c => c.Data.CharacterId == character.CharacterId);
+            if (charObject != null)
+            {
+                charObject.UpdateData(character);
+            }
+        }
+
+        /// <summary>
+        /// Breaks a dance pair by making the partner stop dancing too.
+        /// </summary>
+        private void BreakDancePair(Character character)
+        {
+            if (!character.Data.IsDancing) return;
+
+            // Find and update partner
+            var partner = characterObjects.Find(c => c.Data.CharacterId == character.Data.DancePartnerId);
+            if (partner != null)
+            {
+                partner.Data.DanceState = DanceState.NotDancing;
+                partner.Data.DancePartnerId = -1;
+                partner.UpdateData(partner.Data);
+            }
+
+            // Update this character
+            character.Data.DanceState = DanceState.NotDancing;
+            character.Data.DancePartnerId = -1;
         }
 
         private void ShuffleList<T>(List<T> list)

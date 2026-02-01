@@ -1,9 +1,12 @@
+using System.Collections;
 using UnityEngine;
 
 namespace MasqueradeMystery
 {
     public class CameraController : MonoBehaviour
     {
+        public static CameraController Instance { get; private set; }
+
         [Header("Movement")]
         [SerializeField] private float moveSpeed = 5f;
         [SerializeField] private float edgePanThreshold = 50f; // pixels from screen edge
@@ -18,19 +21,62 @@ namespace MasqueradeMystery
         [Header("Edge Pan Settings")]
         [SerializeField] private bool enableEdgePan = true;
 
+        [Header("Pan Settings")]
+        [SerializeField] private float panDuration = 1f;
+
         private Camera cam;
+        private bool inputEnabled = true;
+        private bool isPanning;
+        private Vector3 defaultPosition;
 
         private void Awake()
         {
+            if (Instance != null && Instance != this)
+            {
+                Destroy(gameObject);
+                return;
+            }
+            Instance = this;
+
             cam = GetComponent<Camera>();
             if (cam == null)
             {
                 cam = Camera.main;
             }
+
+            // Store the initial position as the default/center position
+            defaultPosition = transform.position;
+        }
+
+        private void Start()
+        {
+            GameEvents.OnGameStateChanged += OnGameStateChanged;
+        }
+
+        private void OnDestroy()
+        {
+            GameEvents.OnGameStateChanged -= OnGameStateChanged;
+
+            if (Instance == this)
+            {
+                Instance = null;
+            }
+        }
+
+        private void OnGameStateChanged(GameState state)
+        {
+            if (state == GameState.Title)
+            {
+                // Disable input and reset to center on title screen
+                DisableInput();
+                ResetToCenter();
+            }
         }
 
         private void Update()
         {
+            // Don't process input during pan or when disabled
+            if (!inputEnabled || isPanning) return;
             Vector2 input = Vector2.zero;
 
             // WASD / Arrow key input (Legacy Input System)
@@ -150,6 +196,52 @@ namespace MasqueradeMystery
             minBounds = min;
             maxBounds = max;
         }
+
+        // Pan camera smoothly to target position
+        public Coroutine PanToTarget(Vector3 targetPosition, float duration = -1f)
+        {
+            if (duration < 0) duration = panDuration;
+            return StartCoroutine(PanToTargetCoroutine(targetPosition, duration));
+        }
+
+        private IEnumerator PanToTargetCoroutine(Vector3 targetPosition, float duration)
+        {
+            isPanning = true;
+
+            Vector3 start = transform.position;
+            Vector3 end = new Vector3(targetPosition.x, targetPosition.y, transform.position.z);
+            end = ClampToBounds(end);
+
+            float elapsed = 0f;
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                float t = Mathf.SmoothStep(0f, 1f, elapsed / duration);
+                transform.position = Vector3.Lerp(start, end, t);
+                yield return null;
+            }
+
+            transform.position = end;
+            isPanning = false;
+        }
+
+        public void DisableInput()
+        {
+            inputEnabled = false;
+        }
+
+        public void EnableInput()
+        {
+            inputEnabled = true;
+        }
+
+        public void ResetToCenter()
+        {
+            transform.position = defaultPosition;
+        }
+
+        public bool IsInputEnabled => inputEnabled;
+        public bool IsPanning => isPanning;
 
         // Visualize bounds in editor
         private void OnDrawGizmosSelected()

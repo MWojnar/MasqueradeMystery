@@ -2,8 +2,10 @@ namespace MasqueradeMystery
 {
     public enum GameState
     {
-        Menu,
+        Title,
+        Transitioning,
         Playing,
+        RoundEnding,
         Won,
         Lost
     }

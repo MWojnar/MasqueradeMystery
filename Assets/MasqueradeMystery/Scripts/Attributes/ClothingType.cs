@@ -2,6 +2,7 @@ namespace MasqueradeMystery
 {
     public enum ClothingType
     {
+        None,
         Suit,
         Dress
     }

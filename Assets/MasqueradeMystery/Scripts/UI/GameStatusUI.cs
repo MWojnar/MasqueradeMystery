@@ -52,7 +52,8 @@ namespace MasqueradeMystery
                 wrongGuesses = 0;
                 UpdateDisplay();
             }
-            else if (state == GameState.Menu)
+            else if (state == GameState.Title || state == GameState.Transitioning ||
+                     state == GameState.RoundEnding || state == GameState.Won || state == GameState.Lost)
             {
                 if (panel != null) panel.SetActive(false);
             }

@@ -53,6 +53,27 @@ namespace MasqueradeMystery
             }
         }
 
+        /// <summary>
+        /// Updates the character's data and refreshes visuals.
+        /// Used when hints require modifying existing characters.
+        /// </summary>
+        public void UpdateData(CharacterData newData)
+        {
+            Data = newData;
+            gameObject.name = $"Character_{newData.CharacterId}";
+
+            if (visuals != null)
+            {
+                visuals.UpdateVisuals(newData);
+            }
+
+            // Update animation state
+            if (animator != null)
+            {
+                animator.SetDancing(newData.IsDancing);
+            }
+        }
+
         // Debug display in inspector
         private void OnValidate()
         {

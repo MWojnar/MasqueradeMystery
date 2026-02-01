@@ -79,8 +79,8 @@ namespace MasqueradeMystery
 
         private void OnGameStateChanged(GameState state)
         {
-            // Could hide/show based on state
-            if (state == GameState.Menu)
+            // Hide on title screen and transitions
+            if (state == GameState.Title || state == GameState.Transitioning)
             {
                 if (panel != null) panel.SetActive(false);
                 ClearHints();
