@@ -1,8 +1,12 @@
+using Codice.Client.BaseCommands;
+using Codice.Client.BaseCommands.Merge.Xml;
+using FMOD;
 using FMOD.Studio;
 using FMODUnity;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor.Graphs;
 using UnityEngine;
 
 namespace MasqueradeMystery
@@ -26,7 +30,9 @@ namespace MasqueradeMystery
 
         [Header("Accusation Animation")]
         [SerializeField] private float accusationWalkSpeed = 3f;
-        [SerializeField] private float accusationStopDistance = 1.5f;
+        [SerializeField] private float accusationStopDistance = 0.8f;
+        [SerializeField] private float accusationFrameTime = 0.2f;
+        [SerializeField] private float accusationZoomLevel = 2.5f;
 
         public FMODUnity.EventReference MainMusic;
         public GameState CurrentState { get; private set; }
@@ -119,6 +125,9 @@ namespace MasqueradeMystery
 
         private void StartNewRound()
         {
+            // Reset camera zoom for new round
+            CameraController.Instance?.ResetZoom();
+
             if (!MainMusic.IsNull && !musicInstance.isValid())
             {
                 musicInstance = RuntimeManager.CreateInstance(MainMusic);
@@ -143,13 +152,13 @@ namespace MasqueradeMystery
             }
             else
             {
-                Debug.LogError("GameManager: CharacterSpawner reference is missing!");
+                UnityEngine.Debug.LogError("GameManager: CharacterSpawner reference is missing!");
                 return;
             }
 
             if (allCharacters == null || allCharacters.Count == 0)
             {
-                Debug.LogError("GameManager: No characters were spawned!");
+                UnityEngine.Debug.LogError("GameManager: No characters were spawned!");
                 return;
             }
 
@@ -165,17 +174,17 @@ namespace MasqueradeMystery
             if (showDebugInfo)
             {
                 int round = RoundManager.Instance != null ? RoundManager.Instance.CurrentRound : 1;
-                Debug.Log($"=== ROUND {round} ===");
-                Debug.Log($"Target: {TargetCharacter}");
-                Debug.Log($"Hints:");
+                UnityEngine.Debug.Log($"=== ROUND {round} ===");
+                UnityEngine.Debug.Log($"Target: {TargetCharacter}");
+                UnityEngine.Debug.Log($"Hints:");
                 foreach (var hint in CurrentHints)
                 {
-                    Debug.Log($"  - {hint.DisplayText}");
+                    UnityEngine.Debug.Log($"  - {hint.DisplayText}");
                 }
 
                 var allCharacterData = allCharacters.Select(c => c.Data).ToList();
                 int matchCount = HintEvaluator.CountMatchingCharacters(allCharacterData, CurrentHints);
-                Debug.Log($"Characters matching all hints: {matchCount}");
+                UnityEngine.Debug.Log($"Characters matching all hints: {matchCount}");
             }
 
             // Notify UI
@@ -187,8 +196,8 @@ namespace MasqueradeMystery
                 gameStatusUI.Initialize(maxWrongGuesses);
             }
 
-            // Enable camera input and set follow target
-            if (CameraController.Instance != null)
+			// Enable camera input and set follow target
+			if (CameraController.Instance != null)
             {
                 CameraController.Instance.EnableInput();
 
@@ -208,7 +217,7 @@ namespace MasqueradeMystery
 
                 if (showDebugInfo)
                 {
-                    Debug.Log($"Timer started: {time} seconds");
+                    UnityEngine.Debug.Log($"Timer started: {time} seconds");
                 }
             }
         }
@@ -235,7 +244,7 @@ namespace MasqueradeMystery
 
             if (showDebugInfo)
             {
-                Debug.Log("Time's up! Round failed.");
+                UnityEngine.Debug.Log("Time's up! Round failed.");
             }
 
             SoundManager.Instance?.PlayFailureJingle();
@@ -256,18 +265,36 @@ namespace MasqueradeMystery
             {
                 CameraController.Instance.DisableInput();
             }
-
-            SetState(GameState.RoundEnding);
+			SetState(GameState.RoundEnding);
 
             // Start the round end sequence
             StartCoroutine(RoundEndSequence(success));
-        }
 
-        private IEnumerator RoundEndSequence(bool success)
-        {
-            // Pan camera to target
-            if (CameraController.Instance != null && targetCharacterObject != null)
+		}
+		private IEnumerator RoundEndSequence(bool success)
+		{
+            // Freeze all characters immediately on success
+            if (success)
             {
+                Character player = spawner?.PlayerCharacter;
+                foreach (var character in allCharacters)
+                {
+                    if (character != player)
+                    {
+                        var animator = character.GetComponent<CharacterAnimator>();
+                        animator?.StopAllActivity();
+                    }
+                }
+            }
+
+			// Pan camera to target (and zoom if success)
+			if (CameraController.Instance != null && targetCharacterObject != null)
+			{
+                // Start zoom simultaneously with pan on success
+                if (success)
+                {
+                    CameraController.Instance.ZoomTo(accusationZoomLevel, 1.5f);
+                }
                 yield return CameraController.Instance.PanToTarget(targetCharacterObject.transform.position);
             }
 
@@ -308,32 +335,21 @@ namespace MasqueradeMystery
 
             if (accusedAnimator == null || playerAnimator == null) yield break;
 
-            // 1. Freeze accused character immediately
-            accusedAnimator.StopAllActivity();
+            // Characters already frozen in RoundEndSequence
 
-            // 2. If accused had a dance partner, stop partner too
-            if (accused.DancePartner != null)
-            {
-                CharacterAnimator partnerAnimator = accused.DancePartner.GetComponent<CharacterAnimator>();
-                if (partnerAnimator != null)
-                {
-                    partnerAnimator.StopAllActivity();
-                }
-            }
-
-            // 3. Calculate target position (left of accused, same Y)
+            // 1. Calculate target position (left of accused, same Y)
             Vector3 targetPosition = accused.transform.position;
             targetPosition.x -= accusationStopDistance;
 
-            // Clamp to scene bounds
+            // Clamp to character bounds
             if (SceneBounds.Instance != null)
             {
-                var bounds = SceneBounds.Instance.Bounds;
+                var bounds = SceneBounds.Instance.CharacterBounds;
                 targetPosition.x = Mathf.Clamp(targetPosition.x, bounds.xMin, bounds.xMax);
                 targetPosition.y = Mathf.Clamp(targetPosition.y, bounds.yMin, bounds.yMax);
             }
 
-            // 4. Walk player to position if not already there
+            // 2. Walk player to position if not already there
             float distanceToTarget = Vector3.Distance(player.transform.position, targetPosition);
             if (distanceToTarget > 0.2f)
             {
@@ -359,21 +375,33 @@ namespace MasqueradeMystery
             // Stop walking
             playerAnimator.SetExternalWalking(false);
 
-            // 5. Face each other (player faces right, accused faces left)
+            // 3. Face each other (player faces right, accused faces left)
             playerVisuals?.SetFlipped(false); // Face right
             accusedVisuals?.SetFlipped(true); // Face left
 
-            // 6. Play both animations simultaneously
+            // 4. Ensure player renders above accused
+            var playerRenderers = player.GetComponentsInChildren<SpriteRenderer>();
+            var accusedRenderers = accused.GetComponentsInChildren<SpriteRenderer>();
+            int accusedMaxOrder = accusedRenderers.Max(r => r.sortingOrder);
+            foreach (var r in playerRenderers)
+            {
+                r.sortingOrder = accusedMaxOrder + 10 + (r.sortingOrder % 10);
+            }
+
+            // 5. Play both animations simultaneously with faster frame time
             bool playerAnimDone = false;
             bool accusedAnimDone = false;
 
-            playerAnimator.PlayOneShotAnimation(CharacterAnimationState.Accusing, () => playerAnimDone = true);
-            accusedAnimator.PlayOneShotAnimation(CharacterAnimationState.Accused, () => accusedAnimDone = true);
+            // Unfreeze accused so their animation can play
+            accusedAnimator.Unfreeze();
+
+            playerAnimator.PlayOneShotAnimation(CharacterAnimationState.Accusing, accusationFrameTime, 3, () => playerAnimDone = true);
+            accusedAnimator.PlayOneShotAnimation(CharacterAnimationState.Accused, accusationFrameTime, 2, () => accusedAnimDone = true);
 
             // Play accusation sound at accused character's position
             SoundManager.Instance?.PlayAccusation(accused.transform.position);
 
-            // 7. Wait for both to complete with timeout
+            // 6. Wait for both to complete with timeout
             float timeout = 5f; // Max wait time
             float elapsed = 0f;
             while ((!playerAnimDone || !accusedAnimDone) && elapsed < timeout)
@@ -382,7 +410,7 @@ namespace MasqueradeMystery
                 yield return null;
             }
 
-            // 8. Ensure both are frozen on last frame
+            // 7. Ensure both are frozen on last frame
             playerAnimator.FreezeAnimation();
             accusedAnimator.FreezeAnimation();
         }
@@ -427,6 +455,9 @@ namespace MasqueradeMystery
                 musicInstance.release();
             }
 
+            // Reset camera zoom
+            CameraController.Instance?.ResetZoom();
+
             if (TransitionController.Instance != null)
             {
                 TransitionController.Instance.TransitionWithCallback(
@@ -452,8 +483,9 @@ namespace MasqueradeMystery
                 // Correct guess!
                 if (showDebugInfo)
                 {
-                    Debug.Log("Correct! Target found!");
+                    UnityEngine.Debug.Log("Correct! Target found!");
                 }
+
                 GameEvents.OnTargetFound?.Invoke();
                 EndRound(true);
             }
@@ -463,7 +495,7 @@ namespace MasqueradeMystery
                 WrongGuesses++;
                 if (showDebugInfo)
                 {
-                    Debug.Log($"Wrong guess! ({WrongGuesses}/{maxWrongGuesses})");
+                    UnityEngine.Debug.Log($"Wrong guess! ({WrongGuesses}/{maxWrongGuesses})");
                 }
                 GameEvents.OnWrongGuess?.Invoke();
 
@@ -471,7 +503,7 @@ namespace MasqueradeMystery
                 {
                     if (showDebugInfo)
                     {
-                        Debug.Log("Game Over - Too many wrong guesses!");
+                        UnityEngine.Debug.Log("Game Over - Too many wrong guesses!");
                     }
                     SoundManager.Instance?.PlayFailureJingle();
                     EndRound(false);
@@ -486,7 +518,7 @@ namespace MasqueradeMystery
 
             if (showDebugInfo)
             {
-                Debug.Log($"Game State: {newState}");
+                UnityEngine.Debug.Log($"Game State: {newState}");
             }
         }
 

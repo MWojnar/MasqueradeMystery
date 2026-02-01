@@ -13,6 +13,12 @@ namespace MasqueradeMystery
         [Header("Manual Bounds (used if no background sprite)")]
         [SerializeField] private Rect manualBounds = new Rect(-10, -5, 20, 10);
 
+        [Header("Character Margins (inset from bounds)")]
+        [SerializeField] private float marginTop = 5f;
+        [SerializeField] private float marginBottom = 1f;
+        [SerializeField] private float marginLeft = 1f;
+        [SerializeField] private float marginRight = 1f;
+
         public Rect Bounds
         {
             get
@@ -27,6 +33,23 @@ namespace MasqueradeMystery
 
         public Vector2 Min => new Vector2(Bounds.xMin, Bounds.yMin);
         public Vector2 Max => new Vector2(Bounds.xMax, Bounds.yMax);
+
+        /// <summary>
+        /// Bounds with character margins applied (for player/NPC movement).
+        /// </summary>
+        public Rect CharacterBounds
+        {
+            get
+            {
+                var b = Bounds;
+                return new Rect(
+                    b.xMin + marginLeft,
+                    b.yMin + marginBottom,
+                    b.width - marginLeft - marginRight,
+                    b.height - marginBottom - marginTop
+                );
+            }
+        }
 
         private void Awake()
         {

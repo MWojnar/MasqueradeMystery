@@ -184,12 +184,17 @@ namespace MasqueradeMystery
 
         private Vector2 GetValidPosition()
         {
+            // Use CharacterBounds if available, otherwise fall back to spawnArea
+            Rect area = SceneBounds.Instance != null
+                ? SceneBounds.Instance.CharacterBounds
+                : spawnArea;
+
             int maxAttempts = 100;
             for (int attempt = 0; attempt < maxAttempts; attempt++)
             {
                 Vector2 position = new Vector2(
-                    Random.Range(spawnArea.xMin, spawnArea.xMax),
-                    Random.Range(spawnArea.yMin, spawnArea.yMax)
+                    Random.Range(area.xMin, area.xMax),
+                    Random.Range(area.yMin, area.yMax)
                 );
 
                 bool valid = true;
@@ -211,8 +216,8 @@ namespace MasqueradeMystery
             // Fallback: return random position even if too close
             Debug.LogWarning("Could not find valid position after max attempts");
             return new Vector2(
-                Random.Range(spawnArea.xMin, spawnArea.xMax),
-                Random.Range(spawnArea.yMin, spawnArea.yMax)
+                Random.Range(area.xMin, area.xMax),
+                Random.Range(area.yMin, area.yMax)
             );
         }
 

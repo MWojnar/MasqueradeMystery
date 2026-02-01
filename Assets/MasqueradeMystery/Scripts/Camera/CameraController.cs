@@ -27,10 +27,15 @@ namespace MasqueradeMystery
         [Header("Follow Settings")]
         [SerializeField] private bool followPlayer = true;
 
+        [Header("Zoom Settings")]
+        [SerializeField] private float defaultZoom = 5f;
+        [SerializeField] private float zoomDuration = 1.5f;
+
         private Camera cam;
         private Transform followTarget;
         private bool inputEnabled = true;
         private bool isPanning;
+        private bool isZooming;
         private Vector3 defaultPosition;
 
         private void Awake()
@@ -50,6 +55,12 @@ namespace MasqueradeMystery
 
             // Store the initial position as the default/center position
             defaultPosition = transform.position;
+
+            // Store initial zoom level if not set
+            if (cam != null && defaultZoom <= 0)
+            {
+                defaultZoom = cam.orthographicSize;
+            }
         }
 
         private void Start()
@@ -230,19 +241,22 @@ namespace MasqueradeMystery
             isPanning = true;
 
             Vector3 start = transform.position;
-            Vector3 end = new Vector3(targetPosition.x, targetPosition.y, transform.position.z);
-            end = ClampToBounds(end);
+            Vector3 rawEnd = new Vector3(targetPosition.x, targetPosition.y, transform.position.z);
 
             float elapsed = 0f;
             while (elapsed < duration)
             {
                 elapsed += Time.deltaTime;
                 float t = Mathf.SmoothStep(0f, 1f, elapsed / duration);
-                transform.position = Vector3.Lerp(start, end, t);
+
+                // Recalculate clamped end each frame (bounds change during zoom)
+                Vector3 clampedEnd = ClampToBounds(rawEnd);
+                transform.position = Vector3.Lerp(start, clampedEnd, t);
                 yield return null;
             }
 
-            transform.position = end;
+            // Final position with current zoom level's bounds
+            transform.position = ClampToBounds(rawEnd);
             isPanning = false;
         }
 
@@ -261,8 +275,44 @@ namespace MasqueradeMystery
             transform.position = defaultPosition;
         }
 
+        // Zoom camera smoothly to target orthographic size
+        public Coroutine ZoomTo(float targetSize, float duration = -1f)
+        {
+            if (duration < 0) duration = zoomDuration;
+            return StartCoroutine(ZoomToCoroutine(targetSize, duration));
+        }
+
+        private IEnumerator ZoomToCoroutine(float targetSize, float duration)
+        {
+            isZooming = true;
+
+            float startSize = cam.orthographicSize;
+            float elapsed = 0f;
+
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                float t = Mathf.SmoothStep(0f, 1f, elapsed / duration);
+                cam.orthographicSize = Mathf.Lerp(startSize, targetSize, t);
+                yield return null;
+            }
+
+            cam.orthographicSize = targetSize;
+            isZooming = false;
+        }
+
+        public void ResetZoom()
+        {
+            if (cam != null)
+            {
+                cam.orthographicSize = defaultZoom;
+            }
+            isZooming = false;
+        }
+
         public bool IsInputEnabled => inputEnabled;
         public bool IsPanning => isPanning;
+        public bool IsZooming => isZooming;
 
         // Visualize bounds in editor
         private void OnDrawGizmosSelected()

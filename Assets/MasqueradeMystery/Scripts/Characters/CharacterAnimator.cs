@@ -73,6 +73,10 @@ namespace MasqueradeMystery
         private bool isOneShotAnimation;
         private bool animationComplete;
         private Action onAnimationComplete;
+        private int oneShotFrameCount;
+
+        // Freeze state - prevents all behavior updates
+        private bool isFrozen;
 
         private void Awake()
         {
@@ -166,6 +170,9 @@ namespace MasqueradeMystery
 
         private void Update()
         {
+            // Skip all behavior updates when frozen
+            if (isFrozen) return;
+
             switch (state)
             {
                 case CharacterAnimationState.Idle:
@@ -242,10 +249,10 @@ namespace MasqueradeMystery
                 Vector2 randomOffset = UnityEngine.Random.insideUnitCircle * walkRadius;
                 Vector3 targetPosition = originalPosition + new Vector3(randomOffset.x, randomOffset.y, 0);
 
-                // Clamp to scene bounds if available
+                // Clamp to character bounds (scene bounds with margins)
                 if (SceneBounds.Instance != null)
                 {
-                    var bounds = SceneBounds.Instance.Bounds;
+                    var bounds = SceneBounds.Instance.CharacterBounds;
                     targetPosition.x = Mathf.Clamp(targetPosition.x, bounds.xMin, bounds.xMax);
                     targetPosition.y = Mathf.Clamp(targetPosition.y, bounds.yMin, bounds.yMax);
                 }
@@ -433,10 +440,10 @@ namespace MasqueradeMystery
                 Vector3 leaderTarget = danceOriginalPosition + new Vector3(randomOffset.x, randomOffset.y, 0);
                 Vector3 followerTarget = leaderTarget + currentPartnerOffset;
 
-                // Clamp to scene bounds if available
+                // Clamp to character bounds (scene bounds with margins)
                 if (SceneBounds.Instance != null)
                 {
-                    var bounds = SceneBounds.Instance.Bounds;
+                    var bounds = SceneBounds.Instance.CharacterBounds;
                     leaderTarget.x = Mathf.Clamp(leaderTarget.x, bounds.xMin, bounds.xMax);
                     leaderTarget.y = Mathf.Clamp(leaderTarget.y, bounds.yMin, bounds.yMax);
                     followerTarget.x = Mathf.Clamp(followerTarget.x, bounds.xMin, bounds.xMax);
@@ -531,9 +538,19 @@ namespace MasqueradeMystery
         /// </summary>
         public void PlayOneShotAnimation(CharacterAnimationState animState, Action onComplete = null)
         {
+            PlayOneShotAnimation(animState, frameTime, FrameCount, onComplete);
+        }
+
+        /// <summary>
+        /// Plays an animation once with custom frame time and frame count, freezes on the last frame.
+        /// </summary>
+        public void PlayOneShotAnimation(CharacterAnimationState animState, float customFrameTime, int frameCount, Action onComplete = null)
+        {
             state = animState;
             currentFrame = 0;
             frameTimer = 0f;
+            frameTime = customFrameTime;
+            oneShotFrameCount = frameCount;
             isOneShotAnimation = true;
             animationComplete = false;
             onAnimationComplete = onComplete;
@@ -550,10 +567,12 @@ namespace MasqueradeMystery
         }
 
         /// <summary>
-        /// Stops all movement and dancing, sets character to idle.
+        /// Stops all movement and dancing, sets character to idle and frozen.
+        /// Frozen characters will not start any new behaviors.
         /// </summary>
         public void StopAllActivity()
         {
+            isFrozen = true;
             isWalking = false;
             isDanceMoving = false;
             hasPartner = false;
@@ -563,6 +582,14 @@ namespace MasqueradeMystery
             state = CharacterAnimationState.Idle;
             currentFrame = 0;
             UpdateVisuals();
+        }
+
+        /// <summary>
+        /// Unfreezes the character, allowing behaviors to resume.
+        /// </summary>
+        public void Unfreeze()
+        {
+            isFrozen = false;
         }
 
         /// <summary>
@@ -581,10 +608,10 @@ namespace MasqueradeMystery
                 frameTimer -= frameTime;
                 currentFrame++;
 
-                if (currentFrame >= FrameCount)
+                if (currentFrame >= oneShotFrameCount)
                 {
                     // Freeze on last frame
-                    currentFrame = FrameCount - 1;
+                    currentFrame = oneShotFrameCount - 1;
                     animationComplete = true;
                     isOneShotAnimation = false;
                     onAnimationComplete?.Invoke();

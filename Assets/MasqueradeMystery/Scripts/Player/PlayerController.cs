@@ -45,7 +45,7 @@ namespace MasqueradeMystery
         {
             if (SceneBounds.Instance != null)
             {
-                var bounds = SceneBounds.Instance.Bounds;
+                var bounds = SceneBounds.Instance.CharacterBounds;
                 position.x = Mathf.Clamp(position.x, bounds.xMin, bounds.xMax);
                 position.y = Mathf.Clamp(position.y, bounds.yMin, bounds.yMax);
             }
