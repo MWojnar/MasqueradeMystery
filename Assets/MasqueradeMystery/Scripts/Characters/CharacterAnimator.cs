@@ -65,6 +65,9 @@ namespace MasqueradeMystery
         private float danceMoveDecisionTimer;
         private Vector3 partnerOffset; // Offset from partner (for follower to maintain)
 
+        // External control (for player)
+        private bool externallyControlled;
+
         private void Awake()
         {
             visuals = GetComponent<CharacterVisuals>();
@@ -138,6 +141,23 @@ namespace MasqueradeMystery
 
         public bool IsDancing => state == CharacterAnimationState.Dancing;
 
+        public void SetExternalWalking(bool walking)
+        {
+            externallyControlled = true;
+            if (walking && state != CharacterAnimationState.Walking)
+            {
+                state = CharacterAnimationState.Walking;
+                currentFrame = 0;
+                frameTimer = 0f;
+            }
+            else if (!walking && state == CharacterAnimationState.Walking)
+            {
+                state = CharacterAnimationState.Idle;
+                currentFrame = 0;
+            }
+            UpdateVisuals();
+        }
+
         private void Update()
         {
             switch (state)
@@ -159,6 +179,9 @@ namespace MasqueradeMystery
 
         private void UpdateIdleBehavior()
         {
+            // Skip if externally controlled (player)
+            if (externallyControlled) return;
+
             // Only non-partnered characters can walk
             if (hasPartner) return;
 

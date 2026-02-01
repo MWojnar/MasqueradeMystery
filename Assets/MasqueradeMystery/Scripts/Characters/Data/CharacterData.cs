@@ -10,6 +10,7 @@ namespace MasqueradeMystery
         public ClothingType Clothing;
         public Accessories Accessories;
         public DanceState DanceState;
+        public bool IsPlayer;
 
         // Reference to dance partner (by ID, resolved after spawn)
         public int DancePartnerId = -1;
@@ -33,7 +34,8 @@ namespace MasqueradeMystery
                 Accessories = Accessories,
                 DanceState = DanceState,
                 DancePartnerId = DancePartnerId,
-                Position = Position
+                Position = Position,
+                IsPlayer = IsPlayer
             };
         }
 

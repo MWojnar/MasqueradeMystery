@@ -24,7 +24,11 @@ namespace MasqueradeMystery
         [Header("Pan Settings")]
         [SerializeField] private float panDuration = 1f;
 
+        [Header("Follow Settings")]
+        [SerializeField] private bool followPlayer = true;
+
         private Camera cam;
+        private Transform followTarget;
         private bool inputEnabled = true;
         private bool isPanning;
         private Vector3 defaultPosition;
@@ -73,36 +77,53 @@ namespace MasqueradeMystery
             }
         }
 
+        public void SetFollowTarget(Transform target)
+        {
+            followTarget = target;
+        }
+
         private void Update()
         {
             // Don't process input during pan or when disabled
             if (!inputEnabled || isPanning) return;
-            Vector2 input = Vector2.zero;
 
-            // WASD / Arrow key input (Legacy Input System)
-            input.x = Input.GetAxisRaw("Horizontal");
-            input.y = Input.GetAxisRaw("Vertical");
-
-            // Edge panning (only if no keyboard input and enabled)
-            if (enableEdgePan && input == Vector2.zero)
+            // Follow player if enabled and target exists
+            if (followPlayer && followTarget != null)
             {
-                input = GetEdgePanInput() * edgePanSpeedMultiplier;
+                Vector3 targetPos = new Vector3(followTarget.position.x, followTarget.position.y, transform.position.z);
+                targetPos = ClampToBounds(targetPos);
+                transform.position = targetPos;
             }
-
-            // Normalize diagonal movement
-            if (input.magnitude > 1f)
+            else
             {
-                input.Normalize();
+                // Fallback to WASD/edge pan when no follow target
+                Vector2 input = Vector2.zero;
+
+                // WASD / Arrow key input (Legacy Input System)
+                input.x = Input.GetAxisRaw("Horizontal");
+                input.y = Input.GetAxisRaw("Vertical");
+
+                // Edge panning (only if no keyboard input and enabled)
+                if (enableEdgePan && input == Vector2.zero)
+                {
+                    input = GetEdgePanInput() * edgePanSpeedMultiplier;
+                }
+
+                // Normalize diagonal movement
+                if (input.magnitude > 1f)
+                {
+                    input.Normalize();
+                }
+
+                // Apply movement
+                Vector3 move = new Vector3(input.x, input.y, 0) * moveSpeed * Time.deltaTime;
+                Vector3 newPos = transform.position + move;
+
+                // Clamp to bounds (accounting for camera viewport)
+                newPos = ClampToBounds(newPos);
+
+                transform.position = newPos;
             }
-
-            // Apply movement
-            Vector3 move = new Vector3(input.x, input.y, 0) * moveSpeed * Time.deltaTime;
-            Vector3 newPos = transform.position + move;
-
-            // Clamp to bounds (accounting for camera viewport)
-            newPos = ClampToBounds(newPos);
-
-            transform.position = newPos;
         }
 
         private Vector3 ClampToBounds(Vector3 position)

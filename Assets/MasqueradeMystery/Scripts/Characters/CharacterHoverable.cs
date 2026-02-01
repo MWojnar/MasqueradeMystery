@@ -24,6 +24,7 @@ namespace MasqueradeMystery
         private void OnMouseEnter()
         {
             if (character == null) return;
+            if (character.Data?.IsPlayer == true) return;
 
             // Only show hover effects during gameplay
             if (GameManager.Instance != null && GameManager.Instance.CurrentState != GameState.Playing)
@@ -56,6 +57,7 @@ namespace MasqueradeMystery
         private void OnMouseDown()
         {
             if (character == null) return;
+            if (character.Data?.IsPlayer == true) return;
 
             // Only allow clicks during gameplay
             if (GameManager.Instance != null && GameManager.Instance.CurrentState != GameState.Playing)

@@ -15,7 +15,13 @@ namespace MasqueradeMystery
         [SerializeField] private float minDistanceBetweenCharacters = 1.5f;
         [SerializeField] private float dancePartnerDistance = 1.0f;
 
+        [Header("Player Settings")]
+        [SerializeField] private bool spawnPlayer = true;
+
         private List<Character> spawnedCharacters = new List<Character>();
+        private Character playerCharacter;
+
+        public Character PlayerCharacter => playerCharacter;
         private List<Vector2> usedPositions = new List<Vector2>();
 
         public List<Character> SpawnedCharacters => spawnedCharacters;
@@ -38,8 +44,41 @@ namespace MasqueradeMystery
             // Resolve dance partner references
             ResolveDancePartners();
 
+            // Spawn player character
+            if (spawnPlayer)
+            {
+                SpawnPlayerCharacter(allData.Count);
+            }
+
             Debug.Log($"Spawned {spawnedCharacters.Count} characters");
             return spawnedCharacters;
+        }
+
+        private void SpawnPlayerCharacter(int nextId)
+        {
+            CharacterData playerData = GenerateRandomCharacter(nextId);
+            playerData.IsPlayer = true;
+            playerData.DanceState = DanceState.NotDancing;
+            playerData.Position = Vector2.zero; // Center of scene
+
+            Character player = Instantiate(characterPrefab, transform);
+            player.Initialize(playerData);
+            player.gameObject.AddComponent<PlayerController>();
+
+            // Remove hoverable from player
+            var hoverable = player.GetComponent<CharacterHoverable>();
+            if (hoverable != null) Destroy(hoverable);
+
+            // Enable permanent white outline for player
+            var visuals = player.GetComponent<CharacterVisuals>();
+            if (visuals != null)
+            {
+                visuals.SetOutlineColor(Color.white);
+                visuals.SetOutline(true);
+            }
+
+            spawnedCharacters.Add(player);
+            playerCharacter = player;
         }
 
         public void ClearExistingCharacters()
@@ -53,6 +92,7 @@ namespace MasqueradeMystery
             }
             spawnedCharacters.Clear();
             usedPositions.Clear();
+            playerCharacter = null;
         }
 
         private List<CharacterData> GenerateCharacterData()

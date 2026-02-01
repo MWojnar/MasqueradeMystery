@@ -283,6 +283,12 @@ namespace MasqueradeMystery
                 bodyMaterialInstance.SetFloat(OutlineEnabledProperty, enabled ? 1f : 0f);
         }
 
+        public void SetOutlineColor(Color color)
+        {
+            if (bodyMaterialInstance != null)
+                bodyMaterialInstance.SetColor(OutlineColorProperty, color);
+        }
+
         public void SetFlipped(bool flipped)
         {
             if (bodyRenderer != null)

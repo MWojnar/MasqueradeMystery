@@ -107,7 +107,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &2568082038714383506
 Transform:
   m_ObjectHideFlags: 0
@@ -196,6 +196,7 @@ GameObject:
   - component: {fileID: 1113743651279584148}
   - component: {fileID: 5477238356738973251}
   - component: {fileID: 2463543305521974620}
+  - component: {fileID: 592046224560487276}
   m_Layer: 0
   m_Name: Character
   m_TagString: Untagged
@@ -443,7 +444,7 @@ MonoBehaviour:
   - {fileID: 7433239076329990942, guid: db5e11e051452064ab121f147802c850, type: 3}
   - {fileID: 4870236174426677522, guid: db5e11e051452064ab121f147802c850, type: 3}
   outlineMaterial: {fileID: 2100000, guid: 659eaecb48c6443499563f8c02709f69, type: 2}
-  outlineColor: {r: 1, g: 0, b: 0, a: 1}
+  outlineColor: {r: 1, g: 0.93495333, b: 0, a: 1}
   normalColor: {r: 1, g: 1, b: 1, a: 1}
   highlightColor: {r: 1.2, g: 1.2, b: 1.2, a: 1}
 --- !u!114 &5477238356738973251
@@ -480,6 +481,20 @@ MonoBehaviour:
   danceMoveChance: 0.1
   danceMoveSpeed: 0.5
   danceMoveRadius: 3
+--- !u!114 &592046224560487276
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5659315292994913004}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0ac7b9aac959f0846aeafa674a58c754, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MasqueradeMystery::MasqueradeMystery.DepthSorter
+  yMultiplier: 100
+  baseOffset: 1000
 --- !u!1 &6344295248856093781
 GameObject:
   m_ObjectHideFlags: 0

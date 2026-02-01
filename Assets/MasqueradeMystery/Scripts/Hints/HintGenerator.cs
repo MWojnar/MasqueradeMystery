@@ -28,8 +28,9 @@ namespace MasqueradeMystery
             // Step 1: Generate random non-contradictory hints
             GeneratedHints = GenerateRandomHints(hintCount);
 
-            // Step 2: Find all characters matching these hints
-            var matchingCharacters = HintEvaluator.GetMatchingCharacters(allCharacters, GeneratedHints);
+            // Step 2: Find all characters matching these hints (excluding player)
+            var matchingCharacters = HintEvaluator.GetMatchingCharacters(allCharacters, GeneratedHints)
+                .Where(c => !c.IsPlayer).ToList();
 
             if (matchingCharacters.Count == 0)
             {
@@ -282,8 +283,8 @@ namespace MasqueradeMystery
 
         private void ReplaceRandomCharacter(CharacterData newData)
         {
-            // Pick a random non-dancing character to replace (simpler than handling dance pairs)
-            var nonDancingCharacters = characterObjects.Where(c => !c.Data.IsDancing).ToList();
+            // Pick a random non-dancing, non-player character to replace (simpler than handling dance pairs)
+            var nonDancingCharacters = characterObjects.Where(c => !c.Data.IsDancing && !c.Data.IsPlayer).ToList();
 
             Character toReplace;
             if (nonDancingCharacters.Count > 0)
@@ -325,6 +326,9 @@ namespace MasqueradeMystery
 
         private void RandomizeUntilNoMatch(CharacterData character)
         {
+            // Skip if character is player
+            if (character.IsPlayer) return;
+
             int maxAttempts = 50;
             int attempts = 0;
 

@@ -183,10 +183,15 @@ namespace MasqueradeMystery
                 gameStatusUI.Initialize(maxWrongGuesses);
             }
 
-            // Enable camera input
+            // Enable camera input and set follow target
             if (CameraController.Instance != null)
             {
                 CameraController.Instance.EnableInput();
+
+                if (spawner.PlayerCharacter != null)
+                {
+                    CameraController.Instance.SetFollowTarget(spawner.PlayerCharacter.transform);
+                }
             }
         }
 
