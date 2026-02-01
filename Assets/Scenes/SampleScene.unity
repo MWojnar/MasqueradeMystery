@@ -2372,9 +2372,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c5949864aee297e4db9470eff92f0529, type: 3}
   m_Name: 
   m_EditorClassIdentifier: MasqueradeMystery::MasqueradeMystery.RoundManager
-  baseTimeLimit: 60
-  timeReductionPerRound: 5
-  minimumTimeLimit: 10
+  baseTimeLimit: 120
+  timeReductionPerRound: 10
+  minimumTimeLimit: 15
 --- !u!1 &806069160
 GameObject:
   m_ObjectHideFlags: 0
