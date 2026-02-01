@@ -24,7 +24,7 @@ namespace MasqueradeMystery
 
                 // Human mask traits
                 HintType.MaskHasHat => "Human mask with hat",
-                HintType.MaskHasMouth => "Human mask with visible mouth",
+                HintType.MaskHasMouth => "Human mask with a drawn mouth",
 
                 // Clothing
                 HintType.WearsSuit => "Wearing a suit",
