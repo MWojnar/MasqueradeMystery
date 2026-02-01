@@ -477,6 +477,9 @@ MonoBehaviour:
   minDistanceFromOthers: 1.5
   maxWalkAttempts: 10
   swayAmount: 0.15
+  danceMoveChance: 0.05
+  danceMoveSpeed: 0.5
+  danceMoveRadius: 3
 --- !u!1 &6344295248856093781
 GameObject:
   m_ObjectHideFlags: 0
