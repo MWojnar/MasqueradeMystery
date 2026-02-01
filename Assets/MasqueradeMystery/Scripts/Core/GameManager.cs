@@ -340,7 +340,7 @@ namespace MasqueradeMystery
             // 1. Calculate target position (left of accused, same Y)
             Vector3 targetPosition = accused.transform.position;
             targetPosition.x -= accusationStopDistance;
-
+            
             // Clamp to character bounds
             if (SceneBounds.Instance != null)
             {
