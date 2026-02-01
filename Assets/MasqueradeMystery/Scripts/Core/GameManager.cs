@@ -1,12 +1,9 @@
-using Codice.Client.BaseCommands;
-using Codice.Client.BaseCommands.Merge.Xml;
 using FMOD;
 using FMOD.Studio;
 using FMODUnity;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor.Graphs;
 using UnityEngine;
 
 namespace MasqueradeMystery
@@ -99,6 +96,14 @@ namespace MasqueradeMystery
             if (Instance == this)
             {
                 Instance = null;
+            }
+        }
+
+        private void Update()
+        {
+            if (Input.GetKeyDown(KeyCode.Escape))
+            {
+                QuitGame();
             }
         }
 
