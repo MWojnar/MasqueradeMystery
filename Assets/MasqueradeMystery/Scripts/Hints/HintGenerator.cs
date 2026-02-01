@@ -312,11 +312,17 @@ namespace MasqueradeMystery
                 newData.DanceState = DanceState.NotDancing;
                 newData.DancePartnerId = -1;
 
-                // Remove any dance-related hints since they no longer apply
-                GeneratedHints.RemoveAll(h =>
-                    h.Type == HintType.IsDancing ||
-                    h.Type == HintType.DancingWithSuitPartner ||
-                    h.Type == HintType.DancingWithDressPartner);
+                // Replace any dance-related hints with "Standing alone" since they can't be dancing
+                for (int i = 0; i < GeneratedHints.Count; i++)
+                {
+                    if (GeneratedHints[i].Type == HintType.IsDancing ||
+                        GeneratedHints[i].Type == HintType.DancingWithSuitPartner ||
+                        GeneratedHints[i].Type == HintType.DancingWithDressPartner)
+                    {
+                        GeneratedHints[i] = new Hint(HintType.IsNotDancing);
+                        break; // Only one dance hint possible
+                    }
+                }
             }
 
             // Update the character object
