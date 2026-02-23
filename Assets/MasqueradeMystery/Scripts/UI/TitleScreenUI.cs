@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI;
 using TMPro;
 
 namespace MasqueradeMystery
@@ -9,6 +10,7 @@ namespace MasqueradeMystery
         [SerializeField] private GameObject panel;
         [SerializeField] private TMP_Text titleText;
         [SerializeField] private TMP_Text promptText;
+        [SerializeField] private Image logoImage;
 
         [Header("Settings")]
         [SerializeField] private string gameTitle = "Masquerade Mystery";
@@ -20,10 +22,25 @@ namespace MasqueradeMystery
         {
             GameEvents.OnGameStateChanged += OnGameStateChanged;
 
-            // Initialize text
-            if (titleText != null)
+            // Use logo image if assigned, otherwise fall back to title text
+            if (logoImage != null && logoImage.sprite != null)
             {
-                titleText.text = gameTitle;
+                logoImage.gameObject.SetActive(true);
+                if (titleText != null)
+                {
+                    titleText.gameObject.SetActive(false);
+                }
+            }
+            else
+            {
+                if (logoImage != null)
+                {
+                    logoImage.gameObject.SetActive(false);
+                }
+                if (titleText != null)
+                {
+                    titleText.text = gameTitle;
+                }
             }
 
             if (promptText != null)
