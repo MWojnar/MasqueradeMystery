@@ -10,18 +10,27 @@ namespace MasqueradeMystery
     /// Renders a 9-slice sprite with tiled edges and center (no stretching).
     /// Creates 9 child Image objects: 4 corners (Simple), 4 edges (Tiled), 1 center (Tiled).
     /// The source sprite must have border values set in the Sprite Editor.
+    ///
+    /// Uses a custom shader to remap the sprite's alpha so that semi-transparent
+    /// fill pixels (e.g. 55% in the source) can be driven to any target opacity,
+    /// while fully transparent pixels (alpha=0) remain untouched.
     /// </summary>
     [ExecuteAlways]
     public class TiledNineSlice : MonoBehaviour
     {
         [SerializeField] private Sprite sourceSprite;
         [SerializeField] private Color color = Color.white;
+        [SerializeField, Range(0f, 1f)] private float opacity = 0.9f;
 
         private Sprite[] _subSprites;
         private Transform _container;
+        private Material _material;
 
         private static readonly string[] SliceNames =
             { "BL", "B", "BR", "L", "C", "R", "TL", "T", "TR" };
+
+        private static readonly int OpacityID = Shader.PropertyToID("_Opacity");
+        private static readonly int SpriteMaxAlphaID = Shader.PropertyToID("_SpriteMaxAlpha");
 
         private void OnEnable()
         {
@@ -31,6 +40,14 @@ namespace MasqueradeMystery
         private void OnDestroy()
         {
             CleanupSprites();
+            if (_material != null)
+            {
+                if (Application.isPlaying)
+                    Destroy(_material);
+                else
+                    DestroyImmediate(_material);
+                _material = null;
+            }
         }
 
 #if UNITY_EDITOR
@@ -61,6 +78,47 @@ namespace MasqueradeMystery
             }
         }
 
+        public void SetOpacity(float value)
+        {
+            opacity = Mathf.Clamp01(value);
+            if (_material != null)
+            {
+                _material.SetFloat(OpacityID, opacity);
+            }
+        }
+
+        private Material GetOrCreateMaterial()
+        {
+            if (_material != null) return _material;
+
+            var shader = Shader.Find("UI/Remap Alpha");
+            if (shader == null)
+            {
+                Debug.LogWarning("TiledNineSlice: 'UI/Remap Alpha' shader not found, falling back to default UI.");
+                shader = Shader.Find("UI/Default");
+            }
+
+            _material = new Material(shader);
+            _material.name = "TiledNineSlice (Instance)";
+            return _material;
+        }
+
+        private float DetectMaxAlpha(Texture2D tex)
+        {
+            // The sprite has 3 alpha levels: 0, 141/255 (~0.553), and 255/255 (1.0).
+            // The "fill" is 0.553. We want _Opacity to control what that fill becomes.
+            // Borders at 1.0 will map to _Opacity/0.553, clamped to 1 by saturate().
+            // So _SpriteMaxAlpha should be the fill alpha, not the absolute max.
+            //
+            // If the texture is readable, detect it. Otherwise default to 0.553.
+            if (!tex.isReadable) return 141f / 255f;
+
+            // Sample the center pixel to find the fill alpha
+            int cx = tex.width / 2;
+            int cy = tex.height / 2;
+            return tex.GetPixel(cx, cy).a;
+        }
+
         public void Rebuild()
         {
             if (sourceSprite == null || sourceSprite.texture == null) return;
@@ -77,6 +135,12 @@ namespace MasqueradeMystery
             if (bL + bR > texW || bB + bT > texH) return;
 
             CleanupSprites();
+
+            // Set up material with alpha remapping
+            var mat = GetOrCreateMaterial();
+            float maxAlpha = DetectMaxAlpha(tex);
+            mat.SetFloat(SpriteMaxAlphaID, maxAlpha);
+            mat.SetFloat(OpacityID, opacity);
 
             // Find or create container so slices stay behind panel content
             _container = transform.Find("__nine_slice__");
@@ -144,6 +208,7 @@ namespace MasqueradeMystery
 
                 img.sprite = _subSprites[i];
                 img.color = color;
+                img.material = mat;
                 img.raycastTarget = false;
 
                 bool isCorner = (i == 0 || i == 2 || i == 6 || i == 8);
